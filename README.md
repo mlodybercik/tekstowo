@@ -3,7 +3,7 @@
 Web scraper for an (ancient) polish website with lyrics and stuff.
 [tekstowo.pl](http://www.tekstowo.pl/)
 
-# usage
+## usage
 
 It's easy!
 
@@ -28,6 +28,9 @@ optional arguments:
                         returns all songs lyrics in one go
 
     python tekstowo.py -g /piosenka,rick_astley,never_gonna_give_you_up.html
+    We re no strangers to love
+    You know the rules and so do I
+    ...
 ```
 
 ### python
