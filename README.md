@@ -30,7 +30,7 @@ optional arguments:
 ```                  
 
 ```shell
-python tekstowo.py -S "never gonna give you up" 3
+python tekstowo.py -s song "never gonna give you up" 3
 Rick Astley - Never gonna give you up: /piosenka,rick_astley,never_gonna_give_you_up.html
 Ashley Tisdale - Never Gonna Give you up: /piosenka,ashley_tisdale,never_gonna_give_you_up.html
 BBMak - Never gonna give you up: /piosenka,bbmak,never_gonna_give_you_up.html
