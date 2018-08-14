@@ -9,6 +9,7 @@ def main():
     group.add_argument("-g", help="get song lyrics [URL]", action = "store_true")
     group.add_argument("-a", help="returns all songs of an artist [name]", action = "store_true")
     group.add_argument("-s", help="search for an n amount of things", type = str, action = "store", metavar="type", choices = ["artist","song"])
+    group.add_argument("-i", help="get info from the website [URL]", action = "store_true")
     group.add_argument("-x", help="returns all songs lyrics in one go [name]", action = "store_true")
     parser.add_argument("name_url", help="of an artist or song")
     parser.add_argument("amount", help="of displayed results", default=10, nargs="?")
@@ -47,6 +48,12 @@ def main():
 
         for i in x:
             print(i + ": " + x[i])
+        return 0
+
+    elif args.i:
+        x = tekstowo.getSongInfo(args.name_url)
+        for i in x:
+            print(str(i) + ": " + str(x[i]))
         return 0
 
     elif args.x:

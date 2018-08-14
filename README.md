@@ -10,24 +10,23 @@ It's easy!
 ### terminal
 
 ```shell
-python tekstowo.py -h
-usage: tekstowo.py [-h]
-                   (--getText /URL.html | --searchArtist name n --searchSong artist n | --getSongs song name | --giveMeAll artist)
+python tekstowo.py -h                                            
+
+usage: tekstowo.py [-h] (-g | -a | -s type | -i | -x) name_url [amount]
 
 CLI tekstowo wrapper.
 
+positional arguments:
+  name_url    of an artist or song
+  amount      of displayed results
+
 optional arguments:
-  -h, --help            show this help message and exit
-  --getText /URL.html, -g /URL.html
-                        get song lyrics
-  --searchArtist name n name n, -s name n name n
-                        search for an n amount of artists
-  --searchSong artist n artist n, -S artist n artist n
-                        search for n amount of songs
-  --getSongs song name, -a song name
-                        returns all songs of an artist
-  --giveMeAll artist, -x artist
-                        returns all songs lyrics in one go
+  -h, --help  show this help message and exit
+  -g          get song lyrics [URL]
+  -a          returns all songs of an artist [name]
+  -s type     search for an n amount of things
+  -i          get info from the website [URL]
+  -x          returns all songs lyrics in one go [name]
 ```                  
 
 ```shell
@@ -41,7 +40,7 @@ BBMak - Never gonna give you up: /piosenka,bbmak,never_gonna_give_you_up.html
 
 ```python
 from tekstowo import Tekstowo
-#You can also supply tekstowo class with requests headers.
+#You can supply tekstowo class with requests headers.
 tekstowo = Tekstowo(headers={'user-agent': 'rick_astley/0.0.1'})
 tekstowo.getText("/piosenka,rick_astley,never_gonna_give_you_up.html")
 ...
