@@ -6,15 +6,15 @@ def main():
 
     parser = argparse.ArgumentParser(description="CLI tekstowo wrapper.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--getText","-g", help="get song lyrics",nargs=1, type = str, metavar = "/URL.html")
-    group.add_argument("--searchArtist","-s", help="search for an n amount of artists",nargs=2, type = str, metavar = "name n")
-    group.add_argument("--searchSong","-S",help="search for n amount of songs", nargs=2, type = str, metavar = "artist n")
-    group.add_argument("--getSongs","-a", help="returns all songs of an artist", nargs=1, type = str, metavar = "song")
-    group.add_argument("--giveMeAll","-x", help="returns all songs lyrics in one go",nargs=1, type = str, metavar =  "artist")
+    group.add_argument("-g", help="get song lyrics [URL]", action = "store_true")
+    group.add_argument("-a", help="returns all songs of an artist [name]", action = "store_true")
+    group.add_argument("-s", help="search for an n amount of things", type = str, action = "store", metavar="type", choices = ["artist","song"])
+    group.add_argument("-i", help="get info from the website [URL]", action = "store_true")
+    group.add_argument("-x", help="returns all songs lyrics in one go [name]", action = "store_true")
+    parser.add_argument("name_url", help="of an artist or song")
+    parser.add_argument("amount", help="of displayed results", default=10, nargs="?")
 
     args = parser.parse_args()
-    dir(args)
-
     def _webStr(stri):
         r = ""
         tc = {" ":"_"}
@@ -27,31 +27,37 @@ def main():
 
     tekstowo = Tekstowo(headers=None)
 
-    if args.getText:
-        print(tekstowo.getText(args.getText[0]))
+    if args.g:
+        if args.name_url[0] != "/":
+            print("ERROR: url invalid")
+            return -1
+        print(tekstowo.getText(args.name_url))
         return 0
 
-
-    elif args.searchArtist:
-        x = tekstowo.searchArtist(_webStr(args.searchArtist[0]),int(args.searchArtist[1]))
+    elif args.a:
+        x = tekstowo.getLyricURLs(_webStr(args.name_url))
         for i in x:
             print(i + ": " + x[i])
         return 0
 
-    elif args.searchSong:
-        x = tekstowo.searchSong(_webStr(args.searchSong[0]),int(args.searchSong[1]))
+    elif args.s:
+        if args.s == "artist":
+            x = tekstowo.searchArtist(_webStr(args.name_url),int(args.amount))
+        if args.s == "song":
+            x = tekstowo.searchSong(_webStr(args.name_url),int(args.amount))
+
         for i in x:
             print(i + ": " + x[i])
         return 0
 
-    elif args.getSongs:
-        x = tekstowo.getLyricURLs(_webStr(args.getSongs[0]))
+    elif args.i:
+        x = tekstowo.getSongInfo(args.name_url)
         for i in x:
-            print(i + ": " + x[i])
+            print(str(i) + ": " + str(x[i]))
         return 0
 
-    elif args.giveMeAll:
-        urls = tekstowo.getLyricURLs(_webStr(args.giveMeAll[0]))
+    elif args.x:
+        urls = tekstowo.getLyricURLs(_webStr(args.name_url))
         for url in urls:
             print(tekstowo.getText(urls[url]))
         return 0
@@ -65,7 +71,7 @@ class Tekstowo:
                "website"        :  """http://www.tekstowo.pl{}""",
                "artistSongs"    :  """http://www.tekstowo.pl/piosenki_artysty,{},alfabetycznie,strona,{}.html"""}
 
-    def __init__(self,headers):
+    def __init__(self,headers=None):
         self.headers = headers
 
     def _getMultiPageContent(self, thing, query, page):
@@ -83,12 +89,15 @@ class Tekstowo:
     def _getWebsite(self,url):
         site = requests.get(url,headers=self.headers).text
         site = str(bytes(site,"ISO-8859-1"),"utf-8").strip("\n")
-        return BeautifulSoup(site,"html.parser")
+        return BeautifulSoup(site,"html5lib")
 
 
     def getText(self,url):
-        text = self._getWebsite(self.website["website"].format(url)).find_all("div","song-text")[0].get_text()
-        return text[40:-62]
+        try:
+            text = self._getWebsite(self.website["website"].format(url)).find_all("div","song-text")[0].get_text()
+        except IndexError as e:
+            return ""
+        return text[65:-130].lstrip().rstrip()
 
     def searchArtist(self,artistName,amount=10):
         artists = {}
@@ -107,7 +116,7 @@ class Tekstowo:
             slicedArtists.update({i:artists[i]})
             if len(slicedArtists) == amount:
                 break
-        return slicedSongs
+        return slicedArtists
 
     def searchSong(self,name,amount=10):
         songs = {}
@@ -127,6 +136,16 @@ class Tekstowo:
             if len(slicedSongs) == amount:
                 break
         return slicedSongs
+
+    def getSongInfo(self,url):
+        info = {}
+        page = self._getWebsite(self.website["website"].format(url))
+        odslon = page.find_all("div","odslon")[0].getText().replace("Odsłon: ","")
+        info.update({"Odslony":int(odslon)})
+        table = page.find_all("div","metric")[0].tbody.find_all("tr")
+        for entry in table:
+            info.update({entry.th.getText()[:-1:]:entry.td.p.getText()})
+        return info
 
     def getLyricURLs(self, artistName):
         songs = {}
