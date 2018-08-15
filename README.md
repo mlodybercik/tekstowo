@@ -3,6 +3,10 @@
 Web scraper for an (ancient) polish website with lyrics and stuff.
 [tekstowo.pl](http://www.tekstowo.pl/)
 
+## help
+
+Use help() in python or look inside my *spaghetti* code for info.
+
 ## usage
 
 It's easy!
@@ -10,7 +14,7 @@ It's easy!
 ### terminal
 
 ```shell
-python tekstowo.py -h                                            
+python tekstowo.py -h
 
 usage: tekstowo.py [-h] (-g | -a | -s type | -i | -x) name_url [amount]
 
