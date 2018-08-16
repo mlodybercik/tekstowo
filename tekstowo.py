@@ -126,7 +126,6 @@ class Tekstowo:
         """Returns beautifulsoup navigable class for further data extraction
         Takes fully assembled url to download page"""
         if url == self._prevURL:
-            print("Twice one")
             return self._current
         else:
             site = requests.get(url,headers=self.headers, proxies=self.proxies).text
@@ -194,7 +193,6 @@ class Tekstowo:
 
     def getSongInfo(self,url,comments=False):
         """Returns dict of available information about particular song including comments
-        first two entries are views and ID
         { entry : value }
         URL starts with /"""
         info = {}
