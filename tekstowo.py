@@ -83,9 +83,10 @@ class Tekstowo:
                "ranking"        :  """http://www.tekstowo.pl/rankingi,{},strona,{}.html"""
     }
 
-    def __init__(self,headers={}):
+    def __init__(self,headers={},proxies={}):
         """Initialization of tekstowo class, you can supply requests headers"""
         self.headers = headers
+        self.proxies = proxies
 
     def _getMultiPageContent(self, thing, query, page):
         """Returns dict with a URLs taken from particular site.
@@ -120,7 +121,7 @@ class Tekstowo:
     def _getWebsite(self,url):
         """Returns beautifulsoup navigable class for further data extraction
         Takes fully assembled url to download page"""
-        site = requests.get(url,headers=self.headers).text
+        site = requests.get(url,headers=self.headers, proxies=self.proxies).text
         site = str(bytes(site,"ISO-8859-1"),"utf-8").strip("\n")
         return BeautifulSoup(site,"html5lib")
 
@@ -147,8 +148,9 @@ class Tekstowo:
             pages = int(noPages[0].find_all("a","page")[::-1][:1:][0].get_text())
             for site in range(1,pages+1):
                 artists.update(self._getMultiPageContent("artistSearch",artistName,site))
-                if len(artists) == amount:
+                if len(artists) >= amount:
                     break
+
         slicedArtists = {}
         for i in artists:
             slicedArtists.update({i:artists[i]})
@@ -172,10 +174,11 @@ class Tekstowo:
                 songs.update(self._getMultiPageContent("songSearch",name,site))
                 if len(songs) == amount:
                     break
+
         slicedSongs = {}
         for i in songs:
             slicedSongs.update({i:songs[i]})
-            if len(slicedSongs) == amount:
+            if len(slicedSongs) >= amount:
                 break
         return slicedSongs
 
@@ -207,14 +210,14 @@ class Tekstowo:
                 songs.update(self._getMultiPageContent("artistSongs",artistName,site))
         return songs
 
-    def getRankings(self, time, amount=60):
+    def getRankings(self, time="top", amount=60):
         """Returns dict with n amount of ranking entries
         { name : [url, votes] }
         possible time value in Tekstowo.ranking"""
         if time not in self.ranking:
             raise("Bad time not in ranking")
         ranking = {}
-        page = self._getWebsite(self.website["ranking"].format(time,1))
+        page = self._getWebsite(self.website["ranking"].format(self.ranking[time],1))
         noPages = page.find_all("div","padding")
         if noPages == [] or (amount < 30 and amount != 0):
             ranking = self._getMultiPageContent("ranking", self.ranking[time], 1)
@@ -222,9 +225,9 @@ class Tekstowo:
             pages = int(noPages[0].find_all("a","page")[::-1][:1:][0].get_text())
             for site in range(1,pages+1):
                 ranking.update(self._getMultiPageContent("ranking", self.ranking[time], site))
-                if len(ranking) == amount:
+                if len(ranking) >= amount:
                     break
-            return ranking
+
         slicedRanking = {}
         for i in ranking:
             slicedRanking.update({i:ranking[i]})
