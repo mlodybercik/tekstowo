@@ -106,6 +106,8 @@ class Tekstowo:
                 title = entry.find_all("a","title")[0].getText()
                 url = entry.find_all("a","title")[0].get("href")
                 rank = entry.find_all("span","rank")[0].getText()[2:-1]
+                if rank == "":
+                    rank = "0"
                 things[title] = [url,rank]
             return things
 
@@ -145,7 +147,7 @@ class Tekstowo:
             pages = int(noPages[0].find_all("a","page")[::-1][:1:][0].get_text())
             for site in range(1,pages+1):
                 artists.update(self._getMultiPageContent("artistSearch",artistName,site))
-                if len(artists) < amount:
+                if len(artists) == amount:
                     break
         slicedArtists = {}
         for i in artists:
@@ -168,7 +170,7 @@ class Tekstowo:
             pages = int(noPages[0].find_all("a","page")[::-1][:1:][0].get_text())
             for site in range(1,pages+1):
                 songs.update(self._getMultiPageContent("songSearch",name,site))
-                if len(songs) < amount:
+                if len(songs) == amount:
                     break
         slicedSongs = {}
         for i in songs:
@@ -210,7 +212,7 @@ class Tekstowo:
         { name : [url, votes] }
         possible time value in Tekstowo.ranking"""
         if time not in self.ranking:
-            raise("Bad time not in ranging")
+            raise("Bad time not in ranking")
         ranking = {}
         page = self._getWebsite(self.website["ranking"].format(time,1))
         noPages = page.find_all("div","padding")
@@ -220,7 +222,7 @@ class Tekstowo:
             pages = int(noPages[0].find_all("a","page")[::-1][:1:][0].get_text())
             for site in range(1,pages+1):
                 ranking.update(self._getMultiPageContent("ranking", self.ranking[time], site))
-                if len(ranking) < amount:
+                if len(ranking) == amount:
                     break
             return ranking
         slicedRanking = {}
