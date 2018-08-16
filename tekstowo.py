@@ -76,12 +76,16 @@ class Tekstowo:
     }
 
     website = {
-               "artistSearch"   :  """http://www.tekstowo.pl/szukaj,wykonawca,{},strona,{}.html""",
-               "songSearch"     :  """http://www.tekstowo.pl/szukaj,wykonawca,,tytul,{},strona,{}.html""",
-               "website"        :  """http://www.tekstowo.pl{}""",
-               "artistSongs"    :  """http://www.tekstowo.pl/piosenki_artysty,{},alfabetycznie,strona,{}.html""",
-               "ranking"        :  """http://www.tekstowo.pl/rankingi,{},strona,{}.html"""
+               "artistSearch"   :   """http://www.tekstowo.pl/szukaj,wykonawca,{},strona,{}.html""",
+               "songSearch"     :   """http://www.tekstowo.pl/szukaj,wykonawca,,tytul,{},strona,{}.html""",
+               "website"        :   """http://www.tekstowo.pl{}""",
+               "artistSongs"    :   """http://www.tekstowo.pl/piosenki_artysty,{},alfabetycznie,strona,{}.html""",
+               "ranking"        :   """http://www.tekstowo.pl/rankingi,{},strona,{}.html""",
+               "moreComments"   :   """http://www.tekstowo.pl/js,moreComments,S,{},{}"""
     }
+
+    _current = None
+    _prevURL = ""
 
     def __init__(self,headers={},proxies={}):
         """Initialization of tekstowo class, you can supply requests headers"""
@@ -121,9 +125,15 @@ class Tekstowo:
     def _getWebsite(self,url):
         """Returns beautifulsoup navigable class for further data extraction
         Takes fully assembled url to download page"""
-        site = requests.get(url,headers=self.headers, proxies=self.proxies).text
-        site = str(bytes(site,"ISO-8859-1"),"utf-8").strip("\n")
-        return BeautifulSoup(site,"html5lib")
+        if url == self._prevURL:
+            print("Twice one")
+            return self._current
+        else:
+            site = requests.get(url,headers=self.headers, proxies=self.proxies).text
+            site = str(bytes(site,"ISO-8859-1"),"utf-8").strip("\n")
+            self._current = BeautifulSoup(site,"html5lib")
+            self._prevURL = url
+            return self._current
 
     def getText(self,url):
         """Returns text of a given song. Takes the url of the lyrics
@@ -182,14 +192,17 @@ class Tekstowo:
                 break
         return slicedSongs
 
-    def getSongInfo(self,url):
-        """Returns dict of available information about particular song
+    def getSongInfo(self,url,comments=False):
+        """Returns dict of available information about particular song including comments
+        first two entries are views and ID
         { entry : value }
         URL starts with /"""
         info = {}
         page = self._getWebsite(self.website["website"].format(url))
         odslon = page.find_all("div","odslon")[0].getText().replace("Odsłon: ","")
         info.update({"Odslony":int(odslon)})
+        ID = page.find_all("a","pokaz-rev")[0].get("song_id")
+        info.update({"ID":int(ID)})
         table = page.find_all("div","metric")[0].tbody.find_all("tr")
         for entry in table:
             info.update({entry.th.getText()[:-1:]:entry.td.p.getText()})
