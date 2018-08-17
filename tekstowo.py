@@ -76,16 +76,24 @@ class Tekstowo:
     }
 
     website = {
-               "artistSearch"   :  """http://www.tekstowo.pl/szukaj,wykonawca,{},strona,{}.html""",
-               "songSearch"     :  """http://www.tekstowo.pl/szukaj,wykonawca,,tytul,{},strona,{}.html""",
-               "website"        :  """http://www.tekstowo.pl{}""",
-               "artistSongs"    :  """http://www.tekstowo.pl/piosenki_artysty,{},alfabetycznie,strona,{}.html""",
-               "ranking"        :  """http://www.tekstowo.pl/rankingi,{},strona,{}.html"""
+               "artistSearch"   :   """http://www.tekstowo.pl/szukaj,wykonawca,{},strona,{}.html""",
+               "songSearch"     :   """http://www.tekstowo.pl/szukaj,wykonawca,,tytul,{},strona,{}.html""",
+               "website"        :   """http://www.tekstowo.pl{}""",
+               "artistSongs"    :   """http://www.tekstowo.pl/piosenki_artysty,{},alfabetycznie,strona,{}.html""",
+               "ranking"        :   """http://www.tekstowo.pl/rankingi,{},strona,{}.html""",
+               "moreComments"   :   """http://www.tekstowo.pl/js,moreComments,S,{},{}"""
     }
 
-    def __init__(self,headers={}):
+    _current = None
+    _prevURL = ""
+
+    def __init__(self,headers={},proxies={}):
         """Initialization of tekstowo class, you can supply requests headers"""
         self.headers = headers
+        self.proxies = proxies
+
+    def _sliceDict(self):
+        pass
 
     def _getMultiPageContent(self, thing, query, page):
         """Returns dict with a URLs taken from particular site.
@@ -117,12 +125,29 @@ class Tekstowo:
                 things[position.get("title")] = position.get("href")
             return things
 
-    def _getWebsite(self,url):
+    def _getWebsite(self,url,shouldOverwrite=True):
         """Returns beautifulsoup navigable class for further data extraction
         Takes fully assembled url to download page"""
-        site = requests.get(url,headers=self.headers).text
-        site = str(bytes(site,"ISO-8859-1"),"utf-8").strip("\n")
-        return BeautifulSoup(site,"html5lib")
+        if url == self._prevURL:
+            return self._current
+        else:
+            site = requests.get(url,headers=self.headers, proxies=self.proxies).text
+            site = str(bytes(site,"ISO-8859-1"),"utf-8").strip("\n")
+            if shouldOverwrite:
+                self._current = BeautifulSoup(site,"html5lib")
+                self._prevURL = url
+                return self._current
+            else:
+                return BeautifulSoup(site,"html5lib")
+
+    def _getComment(self,startFrom,id):
+        page = self._getWebsite(self.website["moreComments"].format(id,startFrom),shouldOverwrite=False)
+        comments = []
+        for comment in page.find_all("div","komentarz"):
+            user = comment.find_all("strong")[0].getText()
+            text = comment.find_all("div", "p")[0].getText().lstrip().rstrip()
+            comments.append([user,text])
+        return comments
 
     def getText(self,url):
         """Returns text of a given song. Takes the url of the lyrics
@@ -147,8 +172,9 @@ class Tekstowo:
             pages = int(noPages[0].find_all("a","page")[::-1][:1:][0].get_text())
             for site in range(1,pages+1):
                 artists.update(self._getMultiPageContent("artistSearch",artistName,site))
-                if len(artists) == amount:
+                if len(artists) >= amount:
                     break
+
         slicedArtists = {}
         for i in artists:
             slicedArtists.update({i:artists[i]})
@@ -172,24 +198,58 @@ class Tekstowo:
                 songs.update(self._getMultiPageContent("songSearch",name,site))
                 if len(songs) == amount:
                     break
+
         slicedSongs = {}
         for i in songs:
             slicedSongs.update({i:songs[i]})
-            if len(slicedSongs) == amount:
+            if len(slicedSongs) >= amount:
                 break
         return slicedSongs
 
-    def getSongInfo(self,url):
-        """Returns dict of available information about particular song
+    def getSongInfo(self,url,comments=(False,0)):
+        """Returns dict of available information about particular song including comments
+        comments is tuple containing info about
+        [0] Download Comments? if true will download all comments on site
+        [1] how many comments to download, will work with 10 and above
+        default: No comments, only amount
         { entry : value }
         URL starts with /"""
         info = {}
         page = self._getWebsite(self.website["website"].format(url))
         odslon = page.find_all("div","odslon")[0].getText().replace("Odsłon: ","")
         info.update({"Odslony":int(odslon)})
+        ID = page.find_all("a","pokaz-rev")[0].get("song_id")
+        info.update({"ID":int(ID)})
+        rank = page.find_all("span","rank")[0].getText()[2:-1]
+        info.update({"+":rank})
+        commentCount = page.find_all("h2","margint10")[0].getText().strip("Komentarze (:)")
+        info.update({"Comments":commentCount})
         table = page.find_all("div","metric")[0].tbody.find_all("tr")
         for entry in table:
             info.update({entry.th.getText()[:-1:]:entry.td.p.getText()})
+        if comments[0]:
+            commentList = []
+            comms = page.find_all("div","komentarz")
+            for comment in comms:
+                user = comment.find_all("strong")[0].getText()
+                text = comment.find_all("div", "p")[0].getText().lstrip().rstrip()
+                commentList.append([user,text])
+            if int(commentCount) > 10 and comments[1] > 10:
+                for pages in range(10,int(commentCount)+30,30):
+                    commentList.append(self._getComment(pages,ID))
+                    if len(commentList) >= comments[1]:
+                        break
+                slicedComments = []
+                for i in commentList:
+                    slicedComments.append(i)
+                    if len(slicedComments) == comments[1]:
+                        info.update({"Comments":slicedComments})
+                        break
+            else:
+                info.update({"Comments":commentList})
+        return info
+
+
         return info
 
     def getLyricURLs(self, artistName):
@@ -207,14 +267,14 @@ class Tekstowo:
                 songs.update(self._getMultiPageContent("artistSongs",artistName,site))
         return songs
 
-    def getRankings(self, time, amount=60):
+    def getRankings(self, time="top", amount=60):
         """Returns dict with n amount of ranking entries
         { name : [url, votes] }
         possible time value in Tekstowo.ranking"""
         if time not in self.ranking:
             raise("Bad time not in ranking")
         ranking = {}
-        page = self._getWebsite(self.website["ranking"].format(time,1))
+        page = self._getWebsite(self.website["ranking"].format(self.ranking[time],1))
         noPages = page.find_all("div","padding")
         if noPages == [] or (amount < 30 and amount != 0):
             ranking = self._getMultiPageContent("ranking", self.ranking[time], 1)
@@ -222,9 +282,9 @@ class Tekstowo:
             pages = int(noPages[0].find_all("a","page")[::-1][:1:][0].get_text())
             for site in range(1,pages+1):
                 ranking.update(self._getMultiPageContent("ranking", self.ranking[time], site))
-                if len(ranking) == amount:
+                if len(ranking) >= amount:
                     break
-            return ranking
+
         slicedRanking = {}
         for i in ranking:
             slicedRanking.update({i:ranking[i]})
