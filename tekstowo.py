@@ -92,6 +92,9 @@ class Tekstowo:
         self.headers = headers
         self.proxies = proxies
 
+    def _sliceDict(self):
+        pass
+
     def _getMultiPageContent(self, thing, query, page):
         """Returns dict with a URLs taken from particular site.
         {name : url}
@@ -122,7 +125,7 @@ class Tekstowo:
                 things[position.get("title")] = position.get("href")
             return things
 
-    def _getWebsite(self,url):
+    def _getWebsite(self,url,shouldOverwrite=True):
         """Returns beautifulsoup navigable class for further data extraction
         Takes fully assembled url to download page"""
         if url == self._prevURL:
@@ -130,9 +133,21 @@ class Tekstowo:
         else:
             site = requests.get(url,headers=self.headers, proxies=self.proxies).text
             site = str(bytes(site,"ISO-8859-1"),"utf-8").strip("\n")
-            self._current = BeautifulSoup(site,"html5lib")
-            self._prevURL = url
-            return self._current
+            if shouldOverwrite:
+                self._current = BeautifulSoup(site,"html5lib")
+                self._prevURL = url
+                return self._current
+            else:
+                return BeautifulSoup(site,"html5lib")
+
+    def _getComment(self,startFrom,id):
+        page = self._getWebsite(self.website["moreComments"].format(id,startFrom),shouldOverwrite=False)
+        comments = []
+        for comment in page.find_all("div","komentarz"):
+            user = comment.find_all("strong")[0].getText()
+            text = comment.find_all("div", "p")[0].getText().lstrip().rstrip()
+            comments.append([user,text])
+        return comments
 
     def getText(self,url):
         """Returns text of a given song. Takes the url of the lyrics
@@ -191,8 +206,12 @@ class Tekstowo:
                 break
         return slicedSongs
 
-    def getSongInfo(self,url,comments=False):
+    def getSongInfo(self,url,comments=(False,0)):
         """Returns dict of available information about particular song including comments
+        comments is tuple containing info about
+        [0] Download Comments? if true will download all comments on site
+        [1] how many comments to download, will work with 10 and above
+        default: No comments, only amount
         { entry : value }
         URL starts with /"""
         info = {}
@@ -201,9 +220,36 @@ class Tekstowo:
         info.update({"Odslony":int(odslon)})
         ID = page.find_all("a","pokaz-rev")[0].get("song_id")
         info.update({"ID":int(ID)})
+        rank = page.find_all("span","rank")[0].getText()[2:-1]
+        info.update({"+":rank})
+        commentCount = page.find_all("h2","margint10")[0].getText().strip("Komentarze (:)")
+        info.update({"Comments":commentCount})
         table = page.find_all("div","metric")[0].tbody.find_all("tr")
         for entry in table:
             info.update({entry.th.getText()[:-1:]:entry.td.p.getText()})
+        if comments[0]:
+            commentList = []
+            comms = page.find_all("div","komentarz")
+            for comment in comms:
+                user = comment.find_all("strong")[0].getText()
+                text = comment.find_all("div", "p")[0].getText().lstrip().rstrip()
+                commentList.append([user,text])
+            if int(commentCount) > 10 and comments[1] > 10:
+                for pages in range(10,int(commentCount)+30,30):
+                    commentList.append(self._getComment(pages,ID))
+                    if len(commentList) >= comments[1]:
+                        break
+                slicedComments = []
+                for i in commentList:
+                    slicedComments.append(i)
+                    if len(slicedComments) == comments[1]:
+                        info.update({"Comments":slicedComments})
+                        break
+            else:
+                info.update({"Comments":commentList})
+        return info
+
+
         return info
 
     def getLyricURLs(self, artistName):
