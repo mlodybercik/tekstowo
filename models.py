@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-import requests
+import requests, datetime
 
 class Utils:
     def __init__(self):
@@ -27,18 +27,26 @@ class Lyrics:
      - text (str)
      - translation (str)
      - artistUrl (str)
+     - comment count (int)
+     - id (int)
+     - upVotes (int)
     """
     def __init__(self,page):
+        """Initialized with site to parse (lyrics page)"""
         if str(type(page)) != "<class 'bs4.BeautifulSoup'>":
             raise("Passed page is not a BeautifulSoup class")
         self.__parse__(page)
     def __str__(self):
         return "{artist}:{song}".format(artist=self.artist, song=self.songName)
-    def __repr__(self):
+    def __repr__(eself):
         return "{artist}LyricsObject".format(artist=self.artist)
 
     def getArtistObject(self):
         return Artist(_getWebsite(self.artistUrl))
+    def getComments(self):
+        #self.utils = Utils()
+        #utils.getWebsite()
+        pass
 
     def __getArtist(self,page):
         """Returns artist name"""
@@ -78,18 +86,27 @@ class Lyrics:
             return page.find_all("div","belka short")[0].a.get("href")
         except IndexError as e:
             return None
+    def __getID(self,page):
+        return int(page.find_all("a","pokaz-rev")[0].get("song_id"))
+    def __getCommentCount(self,page):
+        return int(page.find_all("h2","margint10")[0].getText().strip("Komentarze ():"))
+    def __getUpVotes(self,page):
+        return int(page.find_all("div","glosowanie")[0].find_all("span","rank")[0].strip("(+)"))
 
     def __parse__(self,page):
         """Uses other functions to parse website for information"""
-        self.artist   = self.__getArtist(page)
-        self.songName = self.__getSongName(page)
-        self.url      = self.__getUrl(page)
-        self.artistUrl= self.__getArtistUrl(page)
+        self.artist       = self.__getArtist(page)
+        self.songName     = self.__getSongName(page)
+        self.url          = self.__getUrl(page)
+        self.artistUrl    = self.__getArtistUrl(page)
+        self.id           = self.__getID(page)
+        self.commentCount = self.__getCommentCount(page)
+        self.upVotes      = self.__getUpVotes(page)
 
         if self.__hasText(page):
             self.hasText = True
             self.text = self.__getText(page)
-            #No need to check for translation if` there is not even a normal text
+            #No need to check for translation if there is not even a normal text
             if self.__hasTranslation(page):
                 self.hasTranslation = True
                 self.translation = self.__getTranslation(page)
@@ -168,10 +185,26 @@ class Song:
         return Lyrics(self.utils.getWebsite(self.url))
 
 class Comment:
+    def __init__(self,username,timedate,content,upVotes,url,childComments=None):
+        self.username = username
+        self.timedate = timedate
+        self.content = content
+        self.upVotes = upVotes
+        self.username = username
+        self.timedate = timedate
+        self.content = content
+        self.upVotes = upVotes
+        self.url = url
+        self.childComment = childsComment
+
+    def getAccount(self):
+        return self.url
+
+class AccountSite:
     pass
 
-class Search:
+class SearchEntry:
     pass
 
-class Ranking:
+class RankingEntry:
     pass
