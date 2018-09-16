@@ -41,6 +41,7 @@ class Lyrics:
         """Initialized with site to parse (lyrics page)"""
         if str(type(page)) != "<class 'bs4.BeautifulSoup'>":
             raise("Passed page is not a BeautifulSoup class")
+        self.utils = Utils()
         self.__parse__(page)
 
     def __str__(self):
@@ -50,16 +51,20 @@ class Lyrics:
         return "{artist}LyricsObject".format(artist=self.artist)
 
     def getArtistObject(self):
-        tmp = Utils()
-        return Artist(tmp._getWebsite(self.artistUrl))
+        """returns artist class"""
+        return Artist(self.utils._getWebsite(self.artistUrl))
 
     def getComments(self, amount=30, startFrom=0):
+        """Spaghetti code incoming
+        code used to download *amount* of comments starting from *startFrom*
+        comment in order with its response
+
+        returns [Comment]"""
         commentList = []
         amount = amount - 1
         start = 0
-        tmp = Utils()
-        while True:
-            site = tmp.getWebsite("http://www.tekstowo.pl/js,moreComments,S,{},{}".format(self.id, startFrom+start+len(commentList)))
+        while True:  # I shouldn't do that
+            site = self.utils.getWebsite("http://www.tekstowo.pl/js,moreComments,S,{},{}".format(self.id, startFrom+start+len(commentList)))
             for comment in site.find_all("div", "komentarz"):
                 childs = []
                 username = comment.a.get("title")
@@ -68,7 +73,7 @@ class Lyrics:
                 url = comment.find_all("a")[0].get("href")
                 id = comment.find_all("div", "p")[0].div.get("id").split("comment-")
                 if comment.p.getText().strip() == "Pokaż powiązany komentarz ↓":
-                    replies = tmp.getWebsite("http://www.tekstowo.pl/js,showParent,{}".format(id))
+                    replies = self.utils.getWebsite("http://www.tekstowo.pl/js,showParent,{}".format(id))
                     for reply in replies.find_all("div", "komentarz "):
                         reply_username = comment.a.get("title")
                         reply_content = comment.find_all("div", "p")[0].get_text().strip()
@@ -170,9 +175,9 @@ class Artist:
     """
 
     def __init__(self, page):
-        self.utils = Utils()
         if str(type(page)) != "<class 'bs4.BeautifulSoup'>":
             raise("Passed page is not a BeautifulSoup class")
+            self.utils = Utils()
         self.__parse__(page)
 
     def __str__(self):
@@ -182,9 +187,11 @@ class Artist:
         return "{name}ArtistObject".format(name=self.name)
 
     def __getName(self, page):
+        """Returns artist name"""
         return page.find_all("div", "belka short")[0].strong.get_text()
 
     def __getAlbums(self, page):
+        """Returns [string] with albums"""
         albums = []
         try:
             for album in page.find(id="artist-disc").find_all("p"):
@@ -194,15 +201,18 @@ class Artist:
             return []
 
     def __getAboutArtist(self, page):
+        """Returns the about artist section"""
         try:
             return page.find(id="artist-desc").p.get_text()
         except Exception:
             return ""
 
     def __getAmountOfFans(self, page):
+        """Returns amount of "fans" from page"""
         return int(page.find_all("div", "odslon")[0].get_text().strip("Fanów: "))
 
     def __getSongList(self, page):
+        """Returns list of songs"""
         songs = []
         name = page.find_all("div", "left-corner")[0].find_all("a", "green")[3].get("href")[11:-5:]
         page = self.utils.getWebsite("http://www.tekstowo.pl/piosenki_artysty,{},alfabetycznie,strona,1.html".format(name))
@@ -215,14 +225,16 @@ class Artist:
         return songs
 
     def __parse__(self, page):
-        self.name = self.__getName(page)
-        self.aboutArtist = self.__getAboutArtist(page)
-        self.albums = self.__getAlbums(page)
-        self.amountOfFans = self.__getAmountOfFans(page)
-        self.songList = self.__getSongList(page)
+        self.name           = self.__getName(page)
+        self.aboutArtist    = self.__getAboutArtist(page)
+        self.albums         = self.__getAlbums(page)
+        self.amountOfFans   = self.__getAmountOfFans(page)
+        self.songList       = self.__getSongList(page)
 
 
 class Song:
+    """Song class containing title of the song and its url."""
+
     def __init__(self, title, url):
         self.title = title
         self.url = "http://www.tekstowo.pl" + url
@@ -239,16 +251,23 @@ class Song:
 
 
 class Comment:
+    """Comment class
+    local variables:
+    - username (str)
+    - content (str)
+    - id (int)
+    - timedate (timedate)
+    - upVotes (int)
+    - url (str)
+    - childComments (list of Comment)"""
+
     def __init__(self, username, content, id, timedate, upVotes, url, childComments=None):
         self.username = username
         self.timedate = timedate
         self.content = content
         self.upVotes = upVotes
         self.url = url
-        self.childComment = childComments
-
-    # def getAccount(self):
-    #    return self.url
+        self.childComments = childComments
 
 
 class AccountSite:
