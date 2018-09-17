@@ -24,7 +24,7 @@ class Utils:
 class Lyrics:
     """Class for storing song lyrics and some info about them
     local variables:
-     - artists (str)
+     - artist (str)
      - songName (str)
      - url (str)
      - hasText (bool)
@@ -127,7 +127,7 @@ class Lyrics:
 
     def __getArtistUrl(self, page):
         try:
-            return page.find_all("div", "belka short")[0].a.get("href")
+            return "http://www.tekstowo.pl/" + page.find_all("a", "link-wykonawca")[0].get("href")
         except IndexError:
             return None
 
