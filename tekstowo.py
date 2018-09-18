@@ -17,6 +17,3 @@ class Tekstowo:
     def getArtist(self, url):
         page = self.utils.getWebsite(url)
         return Artist(page)
-
-    def getSongs(self, artisturl):
-        pass

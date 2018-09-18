@@ -177,7 +177,7 @@ class Artist:
     def __init__(self, page):
         if str(type(page)) != "<class 'bs4.BeautifulSoup'>":
             raise("Passed page is not a BeautifulSoup class")
-            self.utils = Utils()
+        self.utils = Utils()
         self.__parse__(page)
 
     def __str__(self):
@@ -215,13 +215,10 @@ class Artist:
         """Returns list of songs"""
         songs = []
         name = page.find_all("div", "left-corner")[0].find_all("a", "green")[3].get("href")[11:-5:]
-        page = self.utils.getWebsite("http://www.tekstowo.pl/piosenki_artysty,{},alfabetycznie,strona,1.html".format(name))
-        amountOfPages = int(page.find_all("div", "padding")[0].find_all("a", "page")[-2].get("title"))
-        for pagenumber in range(amountOfPages+1):
-            list = page.find_all("div", "ranking-lista")[0].find_all("div", "box-przeboje")
-            for song in list:
-                songs.append(Song(song.find_all("a", "title")[0].get("title"), song.find_all("a", "title")[0].get("href")))
-            page = self.utils.getWebsite("http://www.tekstowo.pl/piosenki_artysty,{},alfabetycznie,strona,{}.html".format(name, pagenumber))
+        page = self.utils.getWebsite("http://www.tekstowo.pl/piosenki_artysty,{},alfabetycznie,strona,0.html".format(name))
+        list = page.find_all("div", "ranking-lista")[0].find_all("div", "box-przeboje")
+        for song in list:
+            songs.append(Song(song.find_all("a", "title")[0].get("title"), song.find_all("a", "title")[0].get("href")))
         return songs
 
     def __parse__(self, page):
