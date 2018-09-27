@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
-import datetime
+from datetime import datetime
 
 
 class Utils:
@@ -72,14 +72,16 @@ class Lyrics:
                 upVotes = comment.find_all("div", "icons")[0].span.get_text()
                 url = comment.find_all("a")[0].get("href")
                 id = comment.find_all("div", "p")[0].div.get("id").split("comment-")
+                time = comment.find_all("div", "bar")[0].contents[2].split()
                 if comment.p.getText().strip() == "Pokaż powiązany komentarz ↓":
                     replies = self.utils.getWebsite("http://www.tekstowo.pl/js,showParent,{}".format(id))
                     for reply in replies.find_all("div", "komentarz "):
                         reply_username = comment.a.get("title")
                         reply_content = comment.find_all("div", "p")[0].get_text().strip()
                         reply_url = comment.find_all("a")[0].get("href")
-                        childs.append(Comment(reply_username, reply_content, None, None, reply_url, None))
-                commentList.append(Comment(username, content, id, None, upVotes, url, childs))
+                        reply_time = comment.find_all("div", "bar")[0].contents[2].split()
+                        childs.append(Comment(reply_username, reply_content, None, reply_time, reply_url, None))
+                commentList.append(Comment(username, content, id, time, upVotes, url, childs))
                 if not(len(commentList) <= amount):
                     return commentList
         # Failsafe
@@ -258,16 +260,33 @@ class Comment:
     - url (str)
     - childComments (list of Comment)"""
 
+    month = {"stycznia": 1,
+             "lutego": 2,
+             "marca": 3,
+             "kwietnia": 4,
+             "maja": 5,
+             "czerwca": 6,
+             "lipca": 7,
+             "sierpnia": 8,
+             "września": 9,
+             "października": 10,
+             "listopada": 11,
+             "grudnia": 12}
+
     def __init__(self, username, content, id, timedate, upVotes, url, childComments=None):
         self.username = username
-        self.timedate = timedate
+        self.timedate = self.__parseTimedate(timedate)
         self.content = content
         self.upVotes = upVotes
         self.url = url
         self.childComments = childComments
 
+    def __parseTimedate(self, tab):
+        hour, minute = tab[3].split(":")
+        return datetime(int(tab[2]), self.month[tab[1]], int(tab[0]), int(hour), int(minute))
 
-class AccountSite:
+
+class Account:
     pass
 
 
