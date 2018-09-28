@@ -3,9 +3,6 @@ from models import Utils, Lyrics, Artist
 
 class Tekstowo:
 
-    website = {
-        "main":   """http://www.tekstowo.pl/{}"""}
-
     def __init__(self):
         self.utils = Utils()
 

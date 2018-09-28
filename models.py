@@ -4,7 +4,8 @@ from datetime import datetime
 
 
 class Utils:
-    """To add proxies and headers overwrite Utils.proxies and Utils.headers"""
+    """Utilities class,
+    to add proxies and headers overwrite Utils.proxies and Utils.headers"""
     proxies = {}
     headers = {}
 
@@ -287,6 +288,7 @@ class Comment:
 
 
 class Account:
+    """Account class containing info about user"""
     pass
 
 

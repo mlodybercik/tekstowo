@@ -46,7 +46,7 @@ class TestArtist(unittest.TestCase):
         self.assertGreaterEqual(self.artist.amountOfFans, 9, "fans doesn't match")
 
     def test_songList(self):
-        self.assertEqual(len(self.artist.songList), 96, "amount of songs doesnt match")
+        self.assertEqual(len(self.artist.songList), 97, "amount of songs doesnt match")
         self.assertTrue(str(type(self.artist.songList[0])), "<class 'models.Song'>")
 
 if __name__ == "__main__":
