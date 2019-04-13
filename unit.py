@@ -1,14 +1,14 @@
 import unittest
-from tekstowo import *
+import models
 
 
 class TestLyrics(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        x = Utils()
+        x = models.Utils()
         y = x.getWebsite("http://www.tekstowo.pl/piosenka,rick_astley,never_gonna_give_you_up.html")
-        self.lyrics = Lyrics(y)
+        self.lyrics = models.Lyrics(y)
 
     def test_ArtistName(self):
         self.assertEqual(self.lyrics.artist, "Rick Astley", "artist name doesn't match")
@@ -33,8 +33,8 @@ class TestArtist(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.utils = Utils()
-        self.artist = Artist(self.utils.getWebsite("http://www.tekstowo.pl/wykonawca,rick_astley.html"))
+        self.utils = models.Utils()
+        self.artist = models.Artist(self.utils.getWebsite("http://www.tekstowo.pl/wykonawca,rick_astley.html"))
 
     def test_Name(self):
         self.assertEqual(self.artist.name, "Rick Astley", "name doesen't match")
@@ -48,6 +48,7 @@ class TestArtist(unittest.TestCase):
     def test_songList(self):
         self.assertEqual(len(self.artist.songList), 97, "amount of songs doesnt match")
         self.assertTrue(str(type(self.artist.songList[0])), "<class 'models.Song'>")
+
 
 if __name__ == "__main__":
     unittest.main()

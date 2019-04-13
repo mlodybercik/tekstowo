@@ -1,0 +1,8 @@
+[✓] - Fix text clipping in translations and in lyrics.
+[✓] - Fix getArtistObject Exceptions
+[0] - Fix comment loading:
+      [✓] - Responses
+      [ ] - datetime
+      [ ] - add something to stop when there is no more comments
+      [ ] - tidy a little bit that spaghetti
+[ ] - Find more bugs!
