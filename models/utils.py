@@ -11,7 +11,7 @@ class Utils:
     def getWebsite(self, url):
         """Download page and return it as BeautifulSoup class"""
         RAWpage = requests.get(url, proxies=self.proxies, headers=self.headers)
-        print("LOG: {}".format(url))
+        # print("LOG: {}".format(url))
         try:
             if RAWpage.status_code != 200:
                 raise("Status code != 200")

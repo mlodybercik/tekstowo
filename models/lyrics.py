@@ -1,3 +1,4 @@
+import traceback
 from . import artist
 from . import comment
 from . import utils
@@ -14,7 +15,7 @@ class Lyrics:
      - text (str) # Very long string, TODO: fix it later
      - translation (str)
      - artistUrl (str)
-     - comment count (int)
+     - commentCount (int)
      - id (int)
      - upVotes (int)
 
@@ -23,7 +24,7 @@ class Lyrics:
      - getArtistObject
     """
 
-    utils = utils.Utils()
+    __utils = utils.Utils()
 
     def __init__(self, page):
         """Initialized with site to parse (lyrics page)"""
@@ -118,36 +119,53 @@ class Lyrics:
     def getComments(self, amount=30, startFrom=0):
         """Spaghetti code incoming...
         code used to download *amount* of comments starting from *startFrom*
-        comment in order with its response
+        comment in order with its replies
 
         returns [Comment]"""
         commentList = []
-        amount = amount - 1
+        if amount == 0:
+            amount = self.commentCount
+        else:
+            amount = amount - 1
         start = 0
         while True:  # I shouldn't do that
-            site = self.utils.getWebsite("http://www.tekstowo.pl/js,moreComments,S,{},{}".format(self.id, startFrom+start+len(commentList)))
+            site = self.__utils.getWebsite("http://www.tekstowo.pl/js,moreComments,S,{},{}".format(self.id, startFrom+start+len(commentList)))
             for comment_ in site.find_all("div", "komentarz"):
-                childs = []
-                username = comment_.a.get("title")
-                content = comment_.find_all("div", "p")[0].get_text().strip()
-                upVotes = comment_.find_all("div", "icons")[0].span.get_text()
-                url = comment_.find_all("a")[0].get("href")
-                id = comment_.find_all("div", "p")[0].div.get("id")[8:]
-                time = comment_.find_all("div", "bar")[0].contents[2].split()[0]
-                if "↓" in comment_.p.getText().strip():
-                    replies = self.utils.getWebsite("http://www.tekstowo.pl/js,showParent,{}".format(id))
-                    for reply in replies.find_all("div", "komentarz "):
-                        reply_username = comment_.a.get("title")
-                        reply_content = comment_.find_all("div", "p")[0].get_text().strip()
-                        reply_url = comment_.find_all("a")[0].get("href")
-                        reply_time = comment_.find_all("div", "bar")[0].contents[2].split()
-                        childs.append(comment.Comment(reply_username, reply_content, None, reply_time, reply_url, None))
-                commentList.append(comment.Comment(username, content, id, time, upVotes, url, childs))
-                if not(len(commentList) <= amount):
-                    return commentList
+                try:
+                    childs = []
+                    replyID = None
+                    username = comment_.a.get("title")
+                    content = comment_.find_all("div", "p")[0].get_text().strip()
+                    upVotes = comment_.find_all("div", "icons")[0].span.get_text()[1:-1]
+                    url = comment_.find_all("a")[0].get("href")
+                    time = comment_.find_all("div", "bar")[0].contents[2].split()
+                    id = comment_.find_all("div", "p")[0].div.get("id")[8:]
+                    if "↓" in comment_.p.getText().strip():
+                        replyID = comment_.find_all("p")[0].a.get("onclick")[19:-1]
+                        replies = self.__utils.getWebsite("http://www.tekstowo.pl/js,showParent,{}".format(replyID))
+                        for reply in replies.find_all("div", "komentarz "):
+                            reply_username = reply.a.get("title")
+                            reply_content = reply.find_all("div", "p")[0].get_text().strip()
+                            reply_url = reply.find_all("a")[0].get("href")
+                            reply_time = reply.find_all("div", "bar")[0].contents[2].split()
+                            print(reply.find_all("div", "bar")[0].contents[2].split())
+                            reply_upVotes = reply.find_all("div", "icons")[0].span.get_text()[1:-1]
+                            childs.append(comment.Comment(reply_username, reply_content, None, reply_time, reply_upVotes, reply_url, None))
+                    if replyID is not None:
+                        commentList.append(comment.Comment(username, content, id, time, upVotes, url, replyID, childs))
+                    else:
+                        commentList.append(comment.Comment(username, content, id, time, upVotes, url, None, childs))
+                    if not(len(commentList) <= amount):
+                        return commentList
+                    if len(commentList) >= self.commentCount:
+                        return commentList
+                except Exception:
+                    traceback.print_exc()
+                    commentList.append(comment.Comment("Exception", "Exception", 0, 0, 0, "Exception"))
+
         # Failsafe
         return []
 
     def getArtistObject(self):
         """returns artist class"""
-        return artist.Artist(self.utils.getWebsite(self.artistUrl))
+        return artist.Artist(self.__utils.getWebsite(self.artistUrl))
