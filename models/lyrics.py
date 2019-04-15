@@ -134,6 +134,7 @@ class Lyrics:
                 try:
                     childs = []
                     replyID = None
+                    # this looks awful
                     username = comment_.a.get("title")
                     content = comment_.find_all("div", "p")[0].get_text().strip()
                     upVotes = comment_.find_all("div", "icons")[0].span.get_text()[1:-1]
