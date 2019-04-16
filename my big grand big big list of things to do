@@ -6,11 +6,11 @@
       [v] - datetime
       [v] - Add something to stop when there is no more comments
       [v] - Fix comment replies, causing reply to be the same thing as comment
-      [ ] - Tidy a little bit that spaghetti # lmao can't do that
+      [x] - Tidy a little bit that spaghetti # lmao can't do that
       [x] - Add possibility of deleted comment. # TEMP FIX wrap everything in try statement
 
 [ ] - Fix documentation:
-      [ ] - Fix classes to contain objects descibed in documentation
+      [ ] - Fix classes to contain objects described in documentation
 
 [V] - Add search functionality:
       ### I wanted to create one function to both search for artist and song,
@@ -18,8 +18,11 @@
       [v] - Add functions to find artist or song
       [v] - Create some sort of object holding that data to get normal object
 
-[ ] - Add/fix/unify(?) magic methods in models/*
-      [ ] - Add some magic 
+[V] - Add/fix/unify(?) magic methods in models/*
+      [v] - Add some magic whenever possible
+      ### __repr__    for developer
+      ### __str__     for user
+      ### __getitem__ for x["asd"]
 
 [ ] - Change classes declarations:
       [ ] - Change classes declaration to not need unneeded variables eg. comment class

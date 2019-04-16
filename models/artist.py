@@ -9,12 +9,14 @@ class Artist:
      - aboutArtist (str)
      - albums (list or None)
      - amountOfFans (int)
-     - songList (list with Song objects
+     - songList (list with Song objects)
 
      Local methods:
      - None
     """
-    utils = utils.Utils()
+    _utils = utils.Utils()
+    _valid_keys = [["a", "albums"],
+                   ["s", "songlist", "songs"]]
 
     def __init__(self, page):
         if str(type(page)) != "<class 'bs4.BeautifulSoup'>":
@@ -22,10 +24,18 @@ class Artist:
         self.__parse__(page)
 
     def __str__(self):
-        return "{name}".format(name=self.name)
+        return "{}".format(self.name)
 
     def __repr__(self):
-        return "{name}ArtistObject".format(name=self.name)
+        return "{}ArtistObject".format(self.name)
+
+    def __getitem__(self, key):
+        if key.casefold() in self._valid_keys[0]:
+            return self.albums
+        elif key.casefold() in self._valid_keys[1]:
+            return self.songList
+        else:
+            raise(Exception("Given key is not valid {}".format(key)))
 
     def __getName(self, page):
         """Returns artist name"""
@@ -56,7 +66,7 @@ class Artist:
         """Returns list of songs"""
         songs = []
         name = page.find_all("div", "left-corner")[0].find_all("a", "green")[3].get("href")[11:-5:]
-        page = self.utils.getWebsite("http://www.tekstowo.pl/piosenki_artysty,{},alfabetycznie,strona,0.html".format(name))
+        page = self._utils.getWebsite("http://www.tekstowo.pl/piosenki_artysty,{},alfabetycznie,strona,0.html".format(name))
         list = page.find_all("div", "ranking-lista")[0].find_all("div", "box-przeboje")
         for song_ in list:
             songs.append(song.Song(song_.find_all("a", "title")[0].get("title"), song_.find_all("a", "title")[0].get("href")))

@@ -20,3 +20,7 @@ class Utils:
         RAWpage = str(bytes(RAWpage.text, "ISO-8859-1"), "utf-8").strip("\n")
         page = BeautifulSoup(RAWpage, "html5lib")
         return page
+
+    def cleanText(self, text):
+        """Clean string"""
+        pass

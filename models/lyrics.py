@@ -20,8 +20,8 @@ class Lyrics:
      - upVotes (int)
 
     Local methods: # rather self explanatory
-     - getComments
-     - getArtistObject
+     - getComments(self, amount=30, startFrom=0)
+     - getArtistObject(self)
     """
 
     __utils = utils.Utils()
@@ -37,6 +37,9 @@ class Lyrics:
 
     def __repr__(self):
         return "{artist}LyricsObject".format(artist=self.artist)
+
+    def __int__(self):
+        return self.id
 
     def __getArtist(self, page):
         """Returns artist name"""

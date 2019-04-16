@@ -56,6 +56,18 @@ class Comment:
         else:
             self.id = int(id)
 
+    def __str__(self):
+        return "{}: {}".format(self.username, self.content)
+
+    def __repr__(self):
+        return "CommentClass{}".format(self.username)
+
+    def __int__(self):
+        return self.id
+
+    def __getitem__(self, n):
+        return self.childComments
+
     def __parseTimedate(self, tab):
         if tab == 0:
             return None

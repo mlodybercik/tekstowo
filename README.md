@@ -17,7 +17,7 @@ class Artist:
 class Song:
 class Comment:
 class ArtistSearch(Search):
-class SongSearch(Search)
+class SongSearch(Search):
 ```
 There is way of easy interaction inside tekstowo.py.
 

@@ -3,10 +3,13 @@ from . import searchEntry
 from overrides import overrides
 
 
-class __Search():
+class _Search():
     """Search class used to interact with search capability of website.
     Whole mechanic of search is here, only thing to change is way of
-    creating entry objects"""
+    creating entry objects
+    Local variables:
+     - nameOfSearch (str)
+     - entries (list) containing SongEntry or ArtistEntry"""
 
     url = "To overwrite"
     __utils = utils.Utils()
@@ -15,6 +18,15 @@ class __Search():
         self.nameOfSearch = name
         self.entries = []
         self.search()
+
+    def __getitem__(self, n):
+        return self.entries[n]
+
+    def __iter__(self):
+        return self.entries.__iter__()
+
+    def __repr__(self):
+        return "{}".format(str(self.__class__))
 
     def search(self):
         page = self.__utils.getWebsite(self.url.format(self.nameOfSearch))
@@ -26,16 +38,24 @@ class __Search():
         pass
 
 
-class ArtistSearch(__Search):
+class ArtistSearch(_Search):
+    """Not much here for documentation, go see _Search"""
     url = """https://www.tekstowo.pl/szukaj,wykonawca,{},strona,1.html"""
+
+    def __str__(self):
+        return "ArtistSearchObject {}".format(self.nameOfSearch)
 
     @overrides
     def createObject(self, name, url):
         return searchEntry.ArtistEntry(name, url)
 
 
-class SongSearch(__Search):
+class SongSearch(_Search):
+    """Not much here for documentation, go see _Search"""
     url = """https://www.tekstowo.pl/szukaj,tytul,{},strona,1.html"""
+
+    def __str__(self):
+        return "SongSearchObject {}".format(self.nameOfSearch)
 
     @overrides
     def createObject(self, name, url):
