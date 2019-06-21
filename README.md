@@ -1,51 +1,43 @@
-# tekstowoLyrics
+## About 85%(?) done
+I've created whole thing with python classes in mind. Everything I am doing here
+is just for my self-development. I created whole thing to scrap fast lots of
+old song lyrics for my other private Char-RNN learning project.
 
-Web scraper for an (ancient) polish website with lyrics and stuff.
-[tekstowo.pl](http://www.tekstowo.pl/)
+*Maybe it will be useful for someone?*
 
-## help
+## What is done?
 
-Use help() in python or look inside my *spaghetti* code for info.
-
-## usage
-
-It's easy!
-
-### terminal
-
-```shell
-python tekstowo.py -h
-
-usage: tekstowo.py [-h] (-g | -a | -s type | -i | -x) name_url [amount]
-
-CLI tekstowo wrapper.
-
-positional arguments:
-  name_url    of an artist or song
-  amount      of displayed results
-
-optional arguments:
-  -h, --help  show this help message and exit
-  -g          get song lyrics [URL]
-  -a          returns all songs of an artist [name]
-  -s type     search for an n amount of things
-  -i          get info from the website [URL]
-  -x          returns all songs lyrics in one go [name]
-```                  
-
-```shell
-python tekstowo.py -s song "never gonna give you up" 3
-Rick Astley - Never gonna give you up: /piosenka,rick_astley,never_gonna_give_you_up.html
-Ashley Tisdale - Never Gonna Give you up: /piosenka,ashley_tisdale,never_gonna_give_you_up.html
-BBMak - Never gonna give you up: /piosenka,bbmak,never_gonna_give_you_up.html
+- Everything is now a class
+```python
+class Lyrics:
+class Artist:
+class Song:
+class Comment:
+class ArtistSearch(Search):
+class SongSearch(Search):
 ```
+There is way of easy interaction inside tekstowo.py.
 
-### python
+## Usage?
 
 ```python
-from tekstowo import Tekstowo
-#You can supply tekstowo class with requests headers.
-tekstowo = Tekstowo(headers={'user-agent': 'rick_astley/0.0.1'})
-tekstowo.getText("/piosenka,rick_astley,never_gonna_give_you_up.html")
-...
+tekstowo = Tekstowo()
+zeppelin = tekstowo.getText("http://www.tekstowo.pl/piosenka,led_zeppelin,stairway_to_heaven.html")
+if(zeppelin.hasText):
+  print(zeppelin.text)
 ```
+
+Function definitions are rather self-explanatory, in case of trouble use python's help() command.
+
+### To do:
+Long-term TODO
+- CLI way of doing things
+- Fix some of that *spaghetti*
+- PyPI???
+- Add classes for:
+```python
+class Account
+class Ranking
+```
+Short-term TODO
+- Go check "my big grand big big list of things to do" to see more things I've been working on.
