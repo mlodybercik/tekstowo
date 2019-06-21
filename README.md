@@ -1,7 +1,4 @@
-### Dev branch
-Currently working on rewriting whole tekstowo to be more *classy*
-
-## About 75% done
+## About 85%(?) done
 I've created whole thing with python classes in mind. Everything I am doing here
 is just for my self-development. I created whole thing to scrap fast lots of
 old song lyrics for my other private Char-RNN learning project.
