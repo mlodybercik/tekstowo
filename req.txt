@@ -1,4 +1,5 @@
-beautifulsoup
+beautifulsoup4
 requests
-python-html5lib
+python-html5lib; sys_platform == 'Linux'
+html5lib; sys_platform != 'Linux'
 overrides
