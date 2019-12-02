@@ -43,8 +43,11 @@ class Lyrics:
 
     def __getArtist(self, page):
         """Returns artist name"""
-        artist_ = page.find_all("div", "left-corner")[0].find_all("a", "green")[2].get("title")
-        return artist_
+        try:
+            artist_ = page.find_all("div", "left-corner")[0].find_all("a", "green")[2].get("title")
+            return artist_
+        except:
+            return None
 
     def __getSongName(self, page):
         """Returns song name"""
@@ -88,13 +91,22 @@ class Lyrics:
             return None
 
     def __getID(self, page):
-        return int(page.find_all("a", "pokaz-rev")[0].get("song_id"))
+        try:
+            return int(page.find_all("a", "pokaz-rev")[0].get("song_id"))
+        except:
+            return -1
 
     def __getCommentCount(self, page):
-        return int(page.find_all("h2", "margint10")[0].getText().strip("Komentarze ():"))
+        try:
+            return int(page.find_all("h2", "margint10")[0].getText().strip("Komentarze ():"))
+        except:
+            return -1
 
     def __getUpVotes(self, page):
-        return int(page.find_all("div", "glosowanie")[0].find_all("span", "rank")[0].getText().strip("(+)"))
+        try:
+            return int(page.find_all("div", "glosowanie")[0].find_all("span", "rank")[0].getText().strip("(+)"))
+        except:
+            return -1
 
     def __parse__(self, page):
         """Uses other functions to parse website for information"""
