@@ -19,3 +19,13 @@ class Tekstowo:
 
     def searchSong(self, name):
         return models.SongSearch(name)
+
+    def getAllTexts(self, artist_name, exceptions=True):
+        artist = self.searchArtist(artist_name)[0].getArtistObject()
+        if input("{}".format(artist.name)).upper == "N":
+            raise StopIteration()
+        else:
+            for i in artist.songList:
+                yield i.getLyricsObject().text
+
+        
