@@ -2,12 +2,13 @@ import requests
 from bs4 import BeautifulSoup
 from copy import copy
 from . import urls
+from . import exceptions
 
 
 def parseSite(requestObj):
     try:
         if requestObj.status_code != 200:
-            raise Exception("Status code != 200")
+            raise exceptions.TekstowoBadSite("Status code != 200")
     except Exception:
         raise("No network connection, bad proxy, or bad URL")
     requestObj = str(bytes(requestObj.text, "ISO-8859-1"), "utf-8").strip("\n")
@@ -33,7 +34,7 @@ class Defaults():
 class TekstowoSession():
     """Utilities class, for user auth."""
 
-    __jar = None
+    __jar = requests.Session()
     is_logged = False
     username = None
 
@@ -56,28 +57,28 @@ class TekstowoSession():
             # also should work
             if(ret.ok):
                 if(ret.url == urls.login):
-                    raise Exception("Couldn't log in.")
+                    raise exceptions.TekstowoUnableToLogin("Bad login or password")
                 self.is_logged = True
             else:
-                raise Exception("Couldn't log in.")
+                raise exceptions.TekstowoBadSite("ret.ok is not ok")
 
     def __logout(self):
         # can't logout when not logged in. stupid
-        # technically unnecessary but better
+        # technically unnecessary but better to
         if(self.is_logged):
             self.__jar.get(urls.logout)
-            self.__jar = None
+            self.__jar = requests.Session()
 
     def __del__(self):
         self.__logout()
 
     def get(self, url, *args, **kwargs):
-        return self.__jar.get(url, *args, **kwargs)
+        return parseSite(self.__jar.get(url, *args, **kwargs))
 
 
 class Utils:
     """Utilities class,
-    to add proxies and headers overwrite Utils.proxies and Utils.headers"""
+    to add proxies and headers overwrite Defaults.proxies and Defaults.headers"""
     __jar = None
 
     def __init__(self, jar=None):
@@ -94,7 +95,6 @@ class Utils:
         elif(type(jar) == TekstowoSession):
             RAWpage = jar.get(url, proxies=Defaults.proxies, headers=all_headers)
         else:
-            raise Exception("Passed bad jar object")
-        # print("LOG: {}".format(url))
+            raise exceptions.TekstowoBadJar()
 
         return parseSite(RAWpage)

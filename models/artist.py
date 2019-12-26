@@ -1,6 +1,7 @@
 from . import song
 from . import utils
 from . import urls
+from . import exceptions
 
 
 class Artist:
@@ -21,7 +22,7 @@ class Artist:
 
     def __init__(self, page):
         if str(type(page)) != "<class 'bs4.BeautifulSoup'>":
-            raise("Passed page is not a BeautifulSoup class")
+            raise exceptions.TekstowoBadObject("Passed page is not a BeautifulSoup class")
         self.__parse__(page)
 
     def __str__(self):
@@ -36,7 +37,7 @@ class Artist:
         elif key.casefold() in self._valid_keys[1]:
             return self.songList
         else:
-            raise(Exception("Given key is not valid {}".format(key)))
+            raise Exception("Given key is not valid {}".format(key))
 
     def __getName(self, page):
         """Returns artist name"""
