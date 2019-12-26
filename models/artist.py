@@ -1,5 +1,6 @@
 from . import song
 from . import utils
+from . import urls
 
 
 class Artist:
@@ -66,15 +67,15 @@ class Artist:
         """Returns list of songs"""
         songs = []
         name = page.find_all("div", "left-corner")[0].find_all("a", "green")[3].get("href")[11:-5:]
-        page = self._utils.getWebsite("http://www.tekstowo.pl/piosenki_artysty,{},alfabetycznie,strona,0.html".format(name))
+        page = self._utils.getWebsite(urls.artist_songs.format(name))
         list = page.find_all("div", "ranking-lista")[0].find_all("div", "box-przeboje")
         for song_ in list:
             songs.append(song.Song(song_.find_all("a", "title")[0].get("title"), song_.find_all("a", "title")[0].get("href")))
         return songs
 
     def __parse__(self, page):
-        self.name           = self.__getName(page)
-        self.aboutArtist    = self.__getAboutArtist(page)
-        self.albums         = self.__getAlbums(page)
-        self.amountOfFans   = self.__getAmountOfFans(page)
-        self.songList       = self.__getSongList(page)
+        self.name = self.__getName(page)
+        self.aboutArtist = self.__getAboutArtist(page)
+        self.albums = self.__getAlbums(page)
+        self.amountOfFans = self.__getAmountOfFans(page)
+        self.songList = self.__getSongList(page)

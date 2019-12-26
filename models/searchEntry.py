@@ -2,12 +2,14 @@ from . import artist
 from . import lyrics
 from . import utils
 from . import song
+from . import urls
+
 
 class _SearchEntry():
     """Main class containing entries for search class
     Local variables:
      - name (str)
-     - url (str) # without tekstowo.pl
+     - url (str) # without base of url (domain)
     """
 
     _utils = utils.Utils()
@@ -30,11 +32,11 @@ class ArtistEntry(_SearchEntry):
 
     def getArtistObject(self):
         # F*ck python's static variable inheritance.
-        return artist.Artist(_SearchEntry._utils.getWebsite("https://www.tekstowo.pl/wykonawca," + self._parseArtistURL() + ".html"))
+        return artist.Artist(_SearchEntry._utils.getWebsite(urls.artist.format(self._parseArtistURL())))
 
     def getAllSongs(self):
         songs = []
-        page = self._utils.getWebsite("https://www.tekstowo.pl/piosenki_artysty,{},alfabetycznie,strona,0.html".format(self._parseArtistURL()))
+        page = self._utils.getWebsite(urls.get_all_songs.format(self._parseArtistURL()))
         list = page.find_all("div", "ranking-lista")[0].find_all("div", "box-przeboje")
         for song_ in list:
             songs.append(song.Song(song_.find_all("a", "title")[0].get("title"), song_.find_all("a", "title")[0].get("href")))
@@ -47,4 +49,4 @@ class SongEntry(_SearchEntry):
         return "SongEntryObject: {}".format(self.name)
 
     def getLyricsObject(self):
-        return lyrics.Lyrics(_SearchEntry._utils.getWebsite("https://www.tekstowo.pl" + self.url))
+        return lyrics.Lyrics(_SearchEntry._utils.getWebsite(urls.base_w + self.url))

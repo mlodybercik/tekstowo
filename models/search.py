@@ -1,5 +1,6 @@
 from . import utils
 from . import searchEntry
+from . import urls
 from overrides import overrides
 
 
@@ -40,7 +41,7 @@ class _Search():
 
 class ArtistSearch(_Search):
     """Not much here for documentation, go see _Search"""
-    url = """https://www.tekstowo.pl/szukaj,wykonawca,{},strona,1.html"""
+    url = urls.artist_search
 
     def __str__(self):
         return "ArtistSearchObject {}".format(self.nameOfSearch)
@@ -52,7 +53,7 @@ class ArtistSearch(_Search):
 
 class SongSearch(_Search):
     """Not much here for documentation, go see _Search"""
-    url = """https://www.tekstowo.pl/szukaj,tytul,{},strona,1.html"""
+    url = urls.song_search
 
     def __str__(self):
         return "SongSearchObject {}".format(self.nameOfSearch)

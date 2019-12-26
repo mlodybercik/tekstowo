@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from copy import copy
+from . import urls
 
 
 def parseSite(requestObj):
@@ -16,7 +17,7 @@ def parseSite(requestObj):
 
 class Defaults():
     _login_headers = {
-        "Referer": "https://www.tekstowo.pl/logowanie.html",
+        "Referer": urls.login,
         "Content-Type": "application/x-www-form-urlencoded",
         "Accept-Encoding": "gzip",
         "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0"
@@ -47,14 +48,14 @@ class TekstowoSession():
         if(not self.is_logged):
             payload = {"login": login, "haslo": password}
             self.__jar = requests.sessions.Session()
-            ret = self.__jar.post("https://www.tekstowo.pl/logowanie.html",
+            ret = self.__jar.post(urls.login,
                                   data=payload,
                                   headers=Defaults._login_headers)
             # when login is succesful it redirects to /, if bad it stays at /logowanie.html
             # i could also check if session cookie is set, but i think this
             # also should work
             if(ret.ok):
-                if(ret.url == "http://www.tekstowo.pl/logowanie.html"):
+                if(ret.url == urls.login):
                     raise Exception("Couldn't log in.")
                 self.is_logged = True
             else:
@@ -64,7 +65,7 @@ class TekstowoSession():
         # can't logout when not logged in. stupid
         # technically unnecessary but better
         if(self.is_logged):
-            self.__jar.get("https://www.tekstowo.pl/wyloguj.html")
+            self.__jar.get(urls.logout)
             self.__jar = None
 
     def __del__(self):

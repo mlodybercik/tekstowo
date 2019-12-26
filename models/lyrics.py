@@ -2,6 +2,7 @@ import traceback
 from . import artist
 from . import comment
 from . import utils
+from . import urls
 
 
 class Lyrics:
@@ -46,7 +47,7 @@ class Lyrics:
         try:
             artist_ = page.find_all("div", "left-corner")[0].find_all("a", "green")[2].get("title")
             return artist_
-        except:
+        except Exception:
             return None
 
     def __getSongName(self, page):
@@ -86,37 +87,37 @@ class Lyrics:
 
     def __getArtistUrl(self, page):
         try:
-            return "http://www.tekstowo.pl" + page.find_all("a", "link-wykonawca")[0].get("href")
+            return urls.base_w + page.find_all("a", "link-wykonawca")[0].get("href")
         except IndexError:
             return None
 
     def __getID(self, page):
         try:
             return int(page.find_all("a", "pokaz-rev")[0].get("song_id"))
-        except:
+        except Exception:
             return -1
 
     def __getCommentCount(self, page):
         try:
             return int(page.find_all("h2", "margint10")[0].getText().strip("Komentarze ():"))
-        except:
+        except Exception:
             return -1
 
     def __getUpVotes(self, page):
         try:
             return int(page.find_all("div", "glosowanie")[0].find_all("span", "rank")[0].getText().strip("(+)"))
-        except:
+        except Exception:
             return -1
 
     def __parse__(self, page):
         """Uses other functions to parse website for information"""
-        self.artist       = self.__getArtist(page)
-        self.songName     = self.__getSongName(page)
-        self.url          = self.__getUrl(page)
-        self.artistUrl    = self.__getArtistUrl(page)
-        self.id           = self.__getID(page)
+        self.artist = self.__getArtist(page)
+        self.songName = self.__getSongName(page)
+        self.url = self.__getUrl(page)
+        self.artistUrl = self.__getArtistUrl(page)
+        self.id = self.__getID(page)
         self.commentCount = self.__getCommentCount(page)
-        self.upVotes      = self.__getUpVotes(page)
+        self.upVotes = self.__getUpVotes(page)
 
         if self.__hasText(page):
             self.hasText = True
@@ -144,7 +145,7 @@ class Lyrics:
             amount = amount - 1
         start = 0
         while True:  # I shouldn't do that
-            site = self.__utils.getWebsite("http://www.tekstowo.pl/js,moreComments,S,{},{}".format(self.id, startFrom+start+len(commentList)))
+            site = self.__utils.getWebsite(urls.get_coments.format(self.id, startFrom+start+len(commentList)))
             for comment_ in site.find_all("div", "komentarz"):
                 try:
                     childs = []
@@ -158,13 +159,12 @@ class Lyrics:
                     id = comment_.find_all("div", "p")[0].div.get("id")[8:]
                     if "↓" in comment_.p.getText().strip():
                         replyID = comment_.find_all("p")[0].a.get("onclick")[19:-1]
-                        replies = self.__utils.getWebsite("http://www.tekstowo.pl/js,showParent,{}".format(replyID))
+                        replies = self.__utils.getWebsite(urls.get_replies.format(replyID))
                         for reply in replies.find_all("div", "komentarz "):
                             reply_username = reply.a.get("title")
                             reply_content = reply.find_all("div", "p")[0].get_text().strip()
                             reply_url = reply.find_all("a")[0].get("href")
                             reply_time = reply.find_all("div", "bar")[0].contents[2].split()
-                            print(reply.find_all("div", "bar")[0].contents[2].split())
                             reply_upVotes = reply.find_all("div", "icons")[0].span.get_text()[1:-1]
                             childs.append(comment.Comment(reply_username, reply_content, None, reply_time, reply_upVotes, reply_url, None))
                     if replyID is not None:

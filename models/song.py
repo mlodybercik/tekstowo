@@ -1,5 +1,6 @@
 from . import lyrics
 from . import utils
+from . import urls
 
 
 class Song:
@@ -18,7 +19,7 @@ class Song:
 
     def __init__(self, title, url):
         self.title = title
-        self.url = "http://www.tekstowo.pl" + url
+        self.url = urls.base_w + url
 
     def __repr__(self):
         return "{title}SongObject".format(title=self.title)
