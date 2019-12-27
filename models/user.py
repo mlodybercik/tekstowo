@@ -39,7 +39,7 @@ class User:
         self.register_date, self.last_login, self.county, \
             self.city, self.about = self.__getDesc(site)
 
-        self.name, self.sex, self.gg, self.points, self.rank, \
+        self.name, self.age, self.sex, self.gg, self.points, self.rank, \
             self.noInvited, self.added, self.edited = self.__getStats(site)
 
         self.recent = self.__getRecent(site)
@@ -66,6 +66,7 @@ class User:
         if name[:6] == "Wiek: ":
             offset -= 1
             name = ""
+        age = int(desc[7 + offset][6:])
         gender = self.sex_table[desc[8+offset][6:]]
         if desc[10 + offset] == "brak":
             gg = -1
@@ -83,7 +84,7 @@ class User:
         invited = int(desc[-19])
         added = (int(desc[-16]), int(desc[-14]), int(desc[-12]), int(desc[-10]))
         edited = (int(desc[-7]), int(desc[-5]), int(desc[-3]))
-        return (name, gender, gg, points, rankno, invited, added, edited)
+        return (name, age, gender, gg, points, rankno, invited, added, edited)
 
     def __getRecent(self, page):
         if(not (self.added[0] or self.added[1] or self.added[2] or self.added[3])):
@@ -129,3 +130,51 @@ class User:
             if("no-bg" in i.get("class")):
                 break
         return fav
+
+    def _getAdv(self, url, _class=draft.Song, search="box-przeboje"):
+        last = False
+        pages = 1
+        current_page = 1
+        page = self.jar.get(url.format(self.login, 1))
+        page = page.findAll("div", "content")[0]
+        navigation = page.findAll("div", "padding")
+        if navigation == []:
+            pages = 1
+        else:
+            pages = int(navigation[0].findAll("a", "page")[-1].get("title"))
+            print(pages)
+        del navigation
+        while(not last):
+            for i in page.findAll("div", search):
+                try:
+                    try:
+                        yield _class(i.a.get("title"), i.a.get("href"))
+                    except AttributeError:
+                        yield _class(i.text.strip(), i.a.get("href"))
+                except AttributeError:
+                    yield list(i.children)[2].strip()
+            if pages == current_page:
+                last = True
+            current_page += 1
+            if not last:
+                page = self.jar.get(url.format(self.login, current_page))
+                page = page.findAll("div", "content")[0]
+
+            else:
+                raise StopIteration
+        raise StopIteration
+
+    def getLyrics(self):
+        return self._getAdv(urls.added_texts_page)
+
+    def getTranslations(self):
+        return self._getAdv(urls.added_translations_page)
+
+    def getVideoclips(self):
+        return self._getAdv(urls.added_videoclips_page)
+
+    def getSoundtracks(self):
+        return self._getAdv(urls.added_soundtracks_page)
+
+    def getInvited(self):
+        return self._getAdv(urls.invited_page, draft.UserDraft, "wykonawca")

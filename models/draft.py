@@ -1,8 +1,8 @@
+from . import user
 from . import artist
 from . import utils
 from . import urls
 from . import lyrics
-from . import user
 
 
 class ArtistDraft:
