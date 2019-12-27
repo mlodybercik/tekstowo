@@ -1,4 +1,4 @@
-from . import song
+from . import draft
 from . import utils
 from . import urls
 from . import exceptions
@@ -71,7 +71,7 @@ class Artist:
         page = self._utils.getWebsite(urls.artist_songs.format(name))
         list = page.find_all("div", "ranking-lista")[0].find_all("div", "box-przeboje")
         for song_ in list:
-            songs.append(song.Song(song_.find_all("a", "title")[0].get("title"), song_.find_all("a", "title")[0].get("href")))
+            songs.append(draft.Song(song_.find_all("a", "title")[0].get("title"), song_.find_all("a", "title")[0].get("href")))
         return songs
 
     def __parse__(self, page):

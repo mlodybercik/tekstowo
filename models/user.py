@@ -1,8 +1,6 @@
 from . import utils
 from . import urls
-from . import song
-from . import artistdraft
-from . import userdraft
+from . import draft
 from datetime import date
 
 
@@ -93,7 +91,7 @@ class User:
         recent = []
         for i in page.find_all("div", "box-przeboje"):
             try:
-                recent.append(song.Song(i.a.get("title"), i.a.get("href")))
+                recent.append(draft.Song(i.a.get("title"), i.a.get("href")))
             except AttributeError:
                 recent.append(list(i.children)[2].strip())
             if("no-bg" in i.get("class")):
@@ -110,7 +108,7 @@ class User:
         # failsafe VVV
         page = page.findAll("div", "box-big")[0]
         for i in page.find_all("div", "wykonawca"):
-            fanof.append(artistdraft.ArtistDraft(i.a.get("title"), i.a.get("href")))
+            fanof.append(draft.ArtistDraft(i.a.get("title"), i.a.get("href")))
         page.extract()
         return fanof
 
@@ -120,14 +118,14 @@ class User:
         invited = []
         page = page.findAll("div", "box-big")[0]
         for i in page.find_all("div", "wykonawca"):
-            invited.append(userdraft.UserDraft(i.text.strip(), i.a.get("href")))
+            invited.append(draft.UserDraft(i.text.strip(), i.a.get("href")))
         page.extract()
         return invited
 
     def __getFavsongs(self, page):
         fav = []
         for i in page.find_all("div", "box-przeboje"):
-            fav.append(song.Song(i.a.get("title"), i.a.get("href")))
+            fav.append(draft.Song(i.a.get("title"), i.a.get("href")))
             if("no-bg" in i.get("class")):
                 break
         return fav

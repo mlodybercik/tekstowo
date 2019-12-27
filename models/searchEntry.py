@@ -1,7 +1,7 @@
 from . import artist
 from . import lyrics
 from . import utils
-from . import song
+from . import draft
 from . import urls
 
 
@@ -39,7 +39,7 @@ class ArtistEntry(_SearchEntry):
         page = self._utils.getWebsite(urls.get_all_songs.format(self._parseArtistURL()))
         list = page.find_all("div", "ranking-lista")[0].find_all("div", "box-przeboje")
         for song_ in list:
-            songs.append(song.Song(song_.find_all("a", "title")[0].get("title"), song_.find_all("a", "title")[0].get("href")))
+            songs.append(draft.Song(song_.find_all("a", "title")[0].get("title"), song_.find_all("a", "title")[0].get("href")))
         return songs
 
 

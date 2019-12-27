@@ -51,22 +51,22 @@ class TestArtist(unittest.TestCase):
 
 
 class TestArtistSearch(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.searchArtist = models.ArtistSearch("Rick Astley")
+        self.artistObject = None
+        self.artist = None
 
-	@classmethod
-	def setUpClass(self):
-		self.searchArtist = models.ArtistSearch("Rick Astley")
-		self.artistObject = None
-		self.artist = None
+    def test_Find(self):
+        self.assertTrue(self.searchArtist[0].url == "/piosenki_artysty,rick_astley.html")
 
-	def test_Find(self):
-		self.assertTrue(self.searchArtist[0].url == "/piosenki_artysty,rick_astley.html")
+    def test_GetArtistObject(self):
+        self.artistObject = self.searchArtist[0].getArtistObject()
+        self.assertTrue(type(self.artistObject) == models.Artist)
 
-	def test_GetArtistObject(self):
-		self.artistObject = self.searchArtist[0].getArtistObject()
-		self.assertTrue(type(self.artistObject) == models.Artist)
+    def test_something(self):
+        pass
 
-	def test_something(self):
-		pass
 
 if __name__ == "__main__":
     unittest.main()
