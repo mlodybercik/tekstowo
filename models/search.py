@@ -41,7 +41,10 @@ class _Search():
 
 class ArtistSearch(_Search):
     """Not much here for documentation, go see _Search"""
-    url = urls.artist_search
+
+    def __init__(self, name):
+        self.url = urls.artist_search.format(utils.urlEncode(name))
+        super().__init__(name)
 
     def __str__(self):
         return "ArtistSearchObject {}".format(self.nameOfSearch)
@@ -53,7 +56,10 @@ class ArtistSearch(_Search):
 
 class SongSearch(_Search):
     """Not much here for documentation, go see _Search"""
-    url = urls.song_search
+
+    def __init__(self, name):
+        self.url = urls.song_search.format(utils.urlEncode(name))
+        super().__init__(name)
 
     def __str__(self):
         return "SongSearchObject {}".format(self.nameOfSearch)

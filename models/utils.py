@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from copy import copy
+from urllib.parse import quote_plus
 from . import urls
 from . import exceptions
 
@@ -14,6 +15,10 @@ def parseSite(requestObj):
     requestObj = str(bytes(requestObj.text, "ISO-8859-1"), "utf-8").strip("\n")
     page = BeautifulSoup(requestObj, "html5lib")
     return page
+
+
+def urlEncode(url):
+    return quote_plus(url)
 
 
 class Defaults():
