@@ -1,4 +1,5 @@
 import unittest
+import tekstowo
 import models
 from datetime import date
 from models import draft
@@ -8,9 +9,7 @@ class TestLyrics(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        x = models.Utils()
-        y = x.get("http://www.tekstowo.pl/piosenka,rick_astley,never_gonna_give_you_up.html")
-        self.lyrics = models.Lyrics(y)
+        self.lyrics = tekstowo.getText("http://www.tekstowo.pl/piosenka,rick_astley,never_gonna_give_you_up.html")
 
     def test_ArtistName(self):
         self.assertEqual(self.lyrics.artist, "Rick Astley", "artist name doesn't match")
@@ -27,16 +26,18 @@ class TestLyrics(unittest.TestCase):
     def test_HasTranslation(self):
         self.assertTrue(self.lyrics.hasTranslation, "has translation?")
 
-    def test_id(self):
+    def test_ID(self):
         self.assertEqual(self.lyrics.id, 36785, "bad id")
+
+    def test_comments(self):
+        self.assertEqual(len(self.lyrics.getComments(0)), self.lyrics.commentCount)
 
 
 class TestArtist(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.utils = models.Utils()
-        self.artist = models.Artist(self.utils.get("http://www.tekstowo.pl/wykonawca,rick_astley.html"))
+        self.artist = tekstowo.getArtist("http://www.tekstowo.pl/wykonawca,rick_astley.html")
 
     def test_Name(self):
         self.assertEqual(self.artist.name, "Rick Astley", "name doesen't match")
@@ -55,7 +56,7 @@ class TestArtist(unittest.TestCase):
 class TestSongSearch(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        self.searchSong = models.SongSearch("Never gonna give you up")
+        self.searchSong = tekstowo.searchSong("Never gonna give you up")
 
     def test_Url(self):
         self.assertTrue(self.searchSong.url == "https://tekstowo.pl/szukaj,tytul,Never+gonna+give+you+up,strona,1.html", "bad url")
@@ -74,7 +75,7 @@ class TestSongSearch(unittest.TestCase):
 class TestArtistSearch(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        self.searchArtist = models.ArtistSearch("Rick Astley")
+        self.searchArtist = tekstowo.searchArtist("Rick Astley")
 
     def test_Find(self):
         self.assertTrue(self.searchArtist[0].url == "/piosenki_artysty,rick_astley.html")
@@ -93,7 +94,7 @@ class TestArtistSearch(unittest.TestCase):
 class TestUser(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        self.user = models.User("bombelbombel")
+        self.user = tekstowo.getUser("bombelbombel")
 
     def test_Desc(self):
         self.assertEqual(self.user.login, "bombelbombel", "invalid name")

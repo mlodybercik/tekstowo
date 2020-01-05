@@ -1,46 +1,37 @@
-from . import utils
 from . import urls
 from . import draft
+from . import exceptions
+from .utils import month, TekstowoSession
 from datetime import date
 
 
 class User:
     "Class for storing info about user"
 
-    # TODO: this is reuse of comment.month
-    month = {"stycznia": 1,
-             "lutego": 2,
-             "marca": 3,
-             "kwietnia": 4,
-             "maja": 5,
-             "czerwca": 6,
-             "lipca": 7,
-             "sierpnia": 8,
-             "września": 9,
-             "października": 10,
-             "listopada": 11,
-             "grudnia": 12}
-
     # TODO: chnage those names xD
     sex_table = {"Kobieta": 0, "Mężczyzna": 1}
 
-    def __init__(self, login, jar=None):
-        if(not jar):
-            self.jar = utils.TekstowoSession()
+    def __init__(self, url, session=None):
+        if not isinstance(session, TekstowoSession):
+            raise exceptions.TekstowoBadObject("Passed invalid object.")
         else:
-            self.jar = jar
+            self.session = session
         # this will rise TekstowoBadSite if name is not valid
-        page = self.jar.get(urls.profile.format(login))
-        self.login = login
+        page = self.session.get(url)
         self.__parse(page)
+
+    @classmethod
+    def from_login(cls, login, session=None):
+        return cls(urls.profile.format(login), session)
 
     def __parse(self, site):
         site = site.findAll("div", "right-column")[0]
+
         self.register_date, self.last_login, self.county, \
             self.city, self.about = self.__getDesc(site)
 
-        self.name, self.age, self.sex, self.gg, self.points, self.rank, \
-            self.noInvited, self.added, self.edited = self.__getStats(site)
+        self.login, self.name, self.age, self.sex, self.gg, self.points, \
+            self.rank, self.noInvited, self.added, self.edited = self.__getStats(site)
 
         self.recent = self.__getRecent(site)
         self.fanof = self.__getFanOf(site)
@@ -50,9 +41,9 @@ class User:
     def __getDesc(self, page):
         desc = [i.strip() for i in page.findAll("div", "opis")[0].extract().strings]
         register_date_raw = desc[0][13:-3].split(" ")
-        register_date = date(int(register_date_raw[2]), self.month[register_date_raw[1]], int(register_date_raw[0]))
+        register_date = date(int(register_date_raw[2]), month[register_date_raw[1]], int(register_date_raw[0]))
         last_login_raw = desc[1][21:-3].split(" ")
-        last_login = date(int(last_login_raw[2]), self.month[last_login_raw[1]], int(last_login_raw[0]))
+        last_login = date(int(last_login_raw[2]), month[last_login_raw[1]], int(last_login_raw[0]))
         county = desc[2][13:]
         city = desc[3][13:]
         about = desc[7]
@@ -62,6 +53,7 @@ class User:
         offset = 0
         page = page.findAll("div", "user-info")[0]
         desc = [i.strip() for i in page.strings]
+        login = desc[4][7:]
         name = desc[6]
         if name[:6] == "Wiek: ":
             offset -= 1
@@ -84,7 +76,7 @@ class User:
         invited = int(desc[-19])
         added = (int(desc[-16]), int(desc[-14]), int(desc[-12]), int(desc[-10]))
         edited = (int(desc[-7]), int(desc[-5]), int(desc[-3]))
-        return (name, age, gender, gg, points, rankno, invited, added, edited)
+        return (login, name, age, gender, gg, points, rankno, invited, added, edited)
 
     def __getRecent(self, page):
         if(not (self.added[0] or self.added[1] or self.added[2] or self.added[3])):
@@ -92,7 +84,7 @@ class User:
         recent = []
         for i in page.find_all("div", "box-przeboje"):
             try:
-                recent.append(draft.Song(i.a.get("title"), i.a.get("href")))
+                recent.append(draft.Song(i.a.get("title"), i.a.get("href"), self.session))
             except AttributeError:
                 recent.append(list(i.children)[2].strip())
             if("no-bg" in i.get("class")):
@@ -109,7 +101,7 @@ class User:
         # failsafe VVV
         page = page.findAll("div", "box-big")[0]
         for i in page.find_all("div", "wykonawca"):
-            fanof.append(draft.ArtistDraft(i.a.get("title"), i.a.get("href")))
+            fanof.append(draft.ArtistDraft(i.a.get("title"), i.a.get("href"), self.session))
         page.extract()
         return fanof
 
@@ -119,14 +111,14 @@ class User:
         invited = []
         page = page.findAll("div", "box-big")[0]
         for i in page.find_all("div", "wykonawca"):
-            invited.append(draft.UserDraft(i.text.strip(), i.a.get("href")))
+            invited.append(draft.UserDraft(i.text.strip(), i.a.get("href"), self.session))
         page.extract()
         return invited
 
     def __getFavsongs(self, page):
         fav = []
         for i in page.find_all("div", "box-przeboje"):
-            fav.append(draft.Song(i.a.get("title"), i.a.get("href")))
+            fav.append(draft.Song(i.a.get("title"), i.a.get("href"), self.session))
             if("no-bg" in i.get("class")):
                 break
         return fav
@@ -135,7 +127,7 @@ class User:
         last = False
         pages = 1
         current_page = 1
-        page = self.jar.get(url.format(self.login, 1))
+        page = self.session.get(url.format(self.login, 1))
         page = page.findAll("div", "content")[0]
         navigation = page.findAll("div", "padding")
         if navigation == []:
@@ -148,16 +140,16 @@ class User:
             for i in page.findAll("div", search):
                 try:
                     try:
-                        yield _class(i.a.get("title"), i.a.get("href"))
+                        yield _class(i.a.get("title"), i.a.get("href"), self.session)
                     except AttributeError:
-                        yield _class(i.text.strip(), i.a.get("href"))
+                        yield _class(i.text.strip(), i.a.get("href"), self.session)
                 except AttributeError:
                     yield list(i.children)[2].strip()
             if pages == current_page:
                 last = True
             current_page += 1
             if not last:
-                page = self.jar.get(url.format(self.login, current_page))
+                page = self.session.get(url.format(self.login, current_page))
                 page = page.findAll("div", "content")[0]
 
             else:

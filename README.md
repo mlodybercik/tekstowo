@@ -1,5 +1,7 @@
 ## About 85%(?) done
 
+imma rewrite this readme.md
+
 ![logo](misc/py.png)
 
 I've created whole thing with python classes in mind. Everything I am doing here

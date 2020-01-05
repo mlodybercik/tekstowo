@@ -1,4 +1,5 @@
 from datetime import datetime
+from .utils import month
 
 
 class Comment:
@@ -19,19 +20,6 @@ class Comment:
     Static variables:
      - month - Containing all twelve months lmao
     """
-
-    month = {"stycznia": 1,
-             "lutego": 2,
-             "marca": 3,
-             "kwietnia": 4,
-             "maja": 5,
-             "czerwca": 6,
-             "lipca": 7,
-             "sierpnia": 8,
-             "września": 9,
-             "października": 10,
-             "listopada": 11,
-             "grudnia": 12}
 
     def __init__(self, username, content, id, timedate, upVotes, url, replyID=None, childComments=None):
         self.username = username
@@ -60,7 +48,7 @@ class Comment:
         return "{}: {}".format(self.username, self.content)
 
     def __repr__(self):
-        return "CommentClass{}".format(self.username)
+        return "Comment: {}".format(self.username)
 
     def __int__(self):
         return self.id
@@ -73,4 +61,4 @@ class Comment:
             return None
         else:
             hour, minute = tab[3].split(":")
-            return datetime(int(tab[2]), self.month[tab[1]], int(tab[0]), int(hour), int(minute))
+            return datetime(int(tab[2]), month[tab[1]], int(tab[0]), int(hour), int(minute))

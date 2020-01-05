@@ -1,11 +1,24 @@
 from . import user
 from . import artist
-from . import utils
 from . import urls
 from . import lyrics
+from . import utils
+from . import exceptions
 
 
-class ArtistDraft:
+class _Draft:
+    def __init__(self, title, url, session=None):
+        if not isinstance(session, utils.TekstowoSession):
+            raise exceptions.TekstowoBadObject("Passed wrong object")
+        self.session = session
+        self.title = title
+        self.url = urls.base_w + url
+
+    def __str__(self):
+        return "{title}:{url}".format(title=self.title, url=self.url)
+
+
+class ArtistDraft(_Draft):
     """Class containing artist info. Note:
         this isn't a Aritst object.
 
@@ -16,23 +29,15 @@ class ArtistDraft:
      Local methods:
      - getArtistObject
     """
-    util = utils.Utils()
-
-    def __init__(self, title, url):
-        self.title = title
-        self.url = urls.base_w + url
 
     def __repr__(self):
         return "{title}ArtistDraftObject".format(title=self.title)
 
-    def __str__(self):
-        return "{title}:{url}".format(title=self.title, url=self.url)
-
     def getArtistObject(self):
-        return artist.Artist(self.util.get(self.url))
+        return artist.Artist(self.session.get(self.url))
 
 
-class Song:
+class Song(_Draft):
     """Class containing song info. Note:
         this isn't a Lyrics object, it doesn't
         contain lyrics.
@@ -44,23 +49,15 @@ class Song:
      Local methods:
      - getLyricsObject
     """
-    util = utils.Utils()  # Thank god this is static <3
-
-    def __init__(self, title, url):
-        self.title = title
-        self.url = urls.base_w + url
 
     def __repr__(self):
         return "{title}SongObject".format(title=self.title)
 
-    def __str__(self):
-        return "{title}:{url}".format(title=self.title, url=self.url)
-
     def getLyricsObject(self):
-        return lyrics.Lyrics(self.util.get(self.url))
+        return lyrics.Lyrics(self.session.get(self.url))
 
 
-class UserDraft:
+class UserDraft(_Draft):
     """Class containing user draft. Note:
         this isn't a User object.
 
@@ -71,17 +68,9 @@ class UserDraft:
      Local methods:
      - getArtistObject
     """
-    util = utils.Utils()
-
-    def __init__(self, name, url):
-        self.name = name
-        self.url = urls.base_w + url
 
     def __repr__(self):
         return "{title}UserDraftObject".format(title=self.name)
 
-    def __str__(self):
-        return "{title}:{url}".format(title=self.name, url=self.url)
-
     def getUserObject(self):
-        return user.User(self.util.get(self.url))
+        return user.User(self.session.get(self.url))

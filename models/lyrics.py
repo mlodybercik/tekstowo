@@ -2,6 +2,8 @@ from . import artist
 from . import comment
 from . import utils
 from . import urls
+from . import exceptions
+from bs4 import BeautifulSoup
 
 
 class Lyrics:
@@ -24,17 +26,19 @@ class Lyrics:
      - getArtistObject(self)
     """
 
-    __utils = utils.Utils()
+    session = None
 
-    def __init__(self, page):
-        """Initialized with site to parse (lyrics page)"""
-        if str(type(page)) != "<class 'bs4.BeautifulSoup'>":
-            raise("Passed page is not a BeautifulSoup class")
+    def __init__(self, page, session=None):
+        if not isinstance(page, BeautifulSoup):
+            raise exceptions.TekstowoBadObject("Passed page is not a BeautifulSoup class")
+        if not isinstance(session, utils.TekstowoSession):
+            raise exceptions.TekstowoBadJar("Passed object is not a TekstowoSession")
+        self.session = session
         self.__parse__(page)
 
     @classmethod
-    def from_url(cls, url):
-        return cls(cls.__utils.get(url))
+    def from_url(cls, url, session):
+        return cls(session.get(url), session)
 
     def __str__(self):
         return "{artist}:{song}".format(artist=self.artist, song=self.songName)
@@ -141,14 +145,19 @@ class Lyrics:
         comment in order with its replies
 
         returns [Comment]"""
-        commentList = []
-        if amount == 0:
+
+        if self.commentCount == 0:
+            return []
+
+        if amount > self.commentCount:
             amount = self.commentCount
-        else:
-            amount = amount - 1
+        elif amount == 0:
+            amount = self.commentCount
+
         start = 0
-        while True:  # I shouldn't do that
-            site = self.__utils.get(urls.get_coments.format(self.id, startFrom+start+len(commentList)))
+        commentList = []
+        while len(commentList) < amount:
+            site = self.session.get(urls.get_coments.format(self.id, startFrom+start+len(commentList)))
             for comment_ in site.find_all("div", "komentarz"):
                 try:
                     childs = []
@@ -162,7 +171,7 @@ class Lyrics:
                     id = comment_.find_all("div", "p")[0].div.get("id")[8:]
                     if "↓" in comment_.p.getText().strip():
                         replyID = comment_.find_all("p")[0].a.get("onclick")[19:-1]
-                        replies = self.__utils.get(urls.get_replies.format(replyID))
+                        replies = self.session.get(urls.get_replies.format(replyID))
                         for reply in replies.find_all("div", "komentarz "):
                             reply_username = reply.a.get("title")
                             reply_content = reply.find_all("div", "p")[0].get_text().strip()
@@ -186,4 +195,4 @@ class Lyrics:
 
     def getArtistObject(self):
         """returns artist class"""
-        return artist.Artist(self.__utils.get(self.artistUrl))
+        return artist.Artist(self.session.get(self.artistUrl), self.session)
