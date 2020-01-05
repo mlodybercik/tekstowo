@@ -1,6 +1,6 @@
 ## About 85%(?) done
 
-![logo](misc/py.png)
+<img src="https://raw.githubusercontent.com/krzesu0/tekstowo/dev/misc/py.png" height="100px">
 
 I've created whole thing with python classes in mind. Everything I am doing here
 is just for my self-development. I created whole thing to scrap *fast* lots of
