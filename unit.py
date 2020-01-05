@@ -9,7 +9,7 @@ class TestLyrics(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         x = models.Utils()
-        y = x.getWebsite("http://www.tekstowo.pl/piosenka,rick_astley,never_gonna_give_you_up.html")
+        y = x.get("http://www.tekstowo.pl/piosenka,rick_astley,never_gonna_give_you_up.html")
         self.lyrics = models.Lyrics(y)
 
     def test_ArtistName(self):
@@ -36,7 +36,7 @@ class TestArtist(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.utils = models.Utils()
-        self.artist = models.Artist(self.utils.getWebsite("http://www.tekstowo.pl/wykonawca,rick_astley.html"))
+        self.artist = models.Artist(self.utils.get("http://www.tekstowo.pl/wykonawca,rick_astley.html"))
 
     def test_Name(self):
         self.assertEqual(self.artist.name, "Rick Astley", "name doesen't match")

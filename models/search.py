@@ -30,7 +30,7 @@ class _Search():
         return "{}".format(str(self.__class__))
 
     def search(self):
-        page = self.__utils.getWebsite(self.url.format(self.nameOfSearch))
+        page = self.__utils.get(self.url.format(self.nameOfSearch))
         for i in page.find_all("div", "content")[0].find_all("div", "box-przeboje"):
             self.entries.append(self.createObject(i.a.get("title"), i.a.get("href")))
 

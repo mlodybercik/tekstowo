@@ -1,27 +1,31 @@
 ## About 85%(?) done
+
+![logo](misc/py.png)
+
 I've created whole thing with python classes in mind. Everything I am doing here
-is just for my self-development. I created whole thing to scrap fast lots of
+is just for my self-development. I created whole thing to scrap *fast* lots of
 old song lyrics for my other private Char-RNN learning project.
 
 *Maybe it will be useful for someone?*
 
 ## What is done?
 
-- Everything is now a class
+Everything is now a class
 ```python
-class Lyrics:
-class Artist:
-class Song:
-class Comment:
-class ArtistSearch(Search):
-class SongSearch(Search):
+class Lyrics
+class Artist
+class Song
+class Comment
+class ArtistSearch(Search)
+class SongSearch(Search)
+class User
 ```
-There is way of easy interaction inside tekstowo.py.
+There is way of easy and recommendedway of interaction inside tekstowo.py.
 
 ## Usage?
 
 ```python
-tekstowo = Tekstowo()
+import tekstowo
 zeppelin = tekstowo.getText("http://www.tekstowo.pl/piosenka,led_zeppelin,stairway_to_heaven.html")
 if(zeppelin.hasText):
   print(zeppelin.text)

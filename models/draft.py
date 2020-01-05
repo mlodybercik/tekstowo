@@ -29,7 +29,7 @@ class ArtistDraft:
         return "{title}:{url}".format(title=self.title, url=self.url)
 
     def getArtistObject(self):
-        return artist.Artist(self.util.getWebsite(self.url))
+        return artist.Artist(self.util.get(self.url))
 
 
 class Song:
@@ -57,7 +57,7 @@ class Song:
         return "{title}:{url}".format(title=self.title, url=self.url)
 
     def getLyricsObject(self):
-        return lyrics.Lyrics(self.util.getWebsite(self.url))
+        return lyrics.Lyrics(self.util.get(self.url))
 
 
 class UserDraft:
@@ -84,4 +84,4 @@ class UserDraft:
         return "{title}:{url}".format(title=self.name, url=self.url)
 
     def getUserObject(self):
-        return user.User(self.util.getWebsite(self.url))
+        return user.User(self.util.get(self.url))

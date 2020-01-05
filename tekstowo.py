@@ -1,31 +1,41 @@
 import models
 
 
-class Tekstowo:
+def login(login, password):
+    models.session.login(login, password)
 
-    _utils = models.Utils()
 
-    def getText(self, url):
-        """Downloads lyrics and some other stuff from site. See models/* for more"""
-        page = self._utils.getWebsite(url)
-        return models.Lyrics(page)
+def getText(url, session=models.session):
+    """Downloads lyrics and some other stuff from site.
+    See models/* for more.
+    *(whole url, starting with https://...)*"""
+    return models.Lyrics.from_url(url)
 
-    def getArtist(self, url):
-        page = self._utils.getWebsite(url)
-        return models.Artist(page)
 
-    def searchArtist(self, name):
-        return models.ArtistSearch(name)
+def getArtist(url):
+    """Downloads artist info and some other stuff from site.
+    See models/* for more.
+    *(whole url, starting with https://...)*"""
+    return models.Artist.from_url(url)
 
-    def searchSong(self, name):
-        return models.SongSearch(name)
 
-    def getAllTexts(self, artist_name, exceptions=True):
-        artist = self.searchArtist(artist_name)[0].getArtistObject()
-        if input("{}".format(artist.name)).upper == "N":
-            raise StopIteration()
-        else:
-            for i in artist.songList:
-                yield i.getLyricsObject().text
+def searchArtist(artistName):
+    """Search for artist. Returns models.ArtistSearch"""
+    return models.ArtistSearch(artistName)
 
-        
+
+def searchSong(name):
+    """Search for lyrics. Returns models.SongSearch"""
+    return models.SongSearch(name)
+
+
+def getAllTexts(artist_name=None, artist_url=None):
+    """Generator object for getting all lyrics of given artist."""
+    if artist_name:
+        artist = searchArtist(artist_name)[0].getArtistObject()
+    elif artist_url:
+        artist = getArtist(artist_url)
+    else:
+        raise StopIteration("No parameters passed.")
+    for i in artist.songList:
+        yield i.getLyricsObject().text

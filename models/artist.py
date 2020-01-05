@@ -25,6 +25,10 @@ class Artist:
             raise exceptions.TekstowoBadObject("Passed page is not a BeautifulSoup class")
         self.__parse__(page)
 
+    @classmethod
+    def from_url(cls, url):
+        return cls(cls._utils.get(url))
+
     def __str__(self):
         return "{}".format(self.name)
 
@@ -68,7 +72,7 @@ class Artist:
         """Returns list of songs"""
         songs = []
         name = page.find_all("div", "left-corner")[0].find_all("a", "green")[3].get("href")[11:-5:]
-        page = self._utils.getWebsite(urls.artist_songs.format(name))
+        page = self._utils.get(urls.artist_songs.format(name))
         list = page.find_all("div", "ranking-lista")[0].find_all("div", "box-przeboje")
         for song_ in list:
             songs.append(draft.Song(song_.find_all("a", "title")[0].get("title"), song_.find_all("a", "title")[0].get("href")))

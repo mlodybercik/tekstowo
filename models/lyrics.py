@@ -1,4 +1,3 @@
-import traceback
 from . import artist
 from . import comment
 from . import utils
@@ -32,6 +31,10 @@ class Lyrics:
         if str(type(page)) != "<class 'bs4.BeautifulSoup'>":
             raise("Passed page is not a BeautifulSoup class")
         self.__parse__(page)
+
+    @classmethod
+    def from_url(cls, url):
+        return cls(cls.__utils.get(url))
 
     def __str__(self):
         return "{artist}:{song}".format(artist=self.artist, song=self.songName)
@@ -145,7 +148,7 @@ class Lyrics:
             amount = amount - 1
         start = 0
         while True:  # I shouldn't do that
-            site = self.__utils.getWebsite(urls.get_coments.format(self.id, startFrom+start+len(commentList)))
+            site = self.__utils.get(urls.get_coments.format(self.id, startFrom+start+len(commentList)))
             for comment_ in site.find_all("div", "komentarz"):
                 try:
                     childs = []
@@ -159,7 +162,7 @@ class Lyrics:
                     id = comment_.find_all("div", "p")[0].div.get("id")[8:]
                     if "↓" in comment_.p.getText().strip():
                         replyID = comment_.find_all("p")[0].a.get("onclick")[19:-1]
-                        replies = self.__utils.getWebsite(urls.get_replies.format(replyID))
+                        replies = self.__utils.get(urls.get_replies.format(replyID))
                         for reply in replies.find_all("div", "komentarz "):
                             reply_username = reply.a.get("title")
                             reply_content = reply.find_all("div", "p")[0].get_text().strip()
@@ -176,7 +179,6 @@ class Lyrics:
                     if len(commentList) >= self.commentCount:
                         return commentList
                 except Exception:
-                    traceback.print_exc()
                     commentList.append(comment.Comment("Exception", "Exception", 0, 0, 0, "Exception"))
 
         # Failsafe
@@ -184,4 +186,4 @@ class Lyrics:
 
     def getArtistObject(self):
         """returns artist class"""
-        return artist.Artist(self.__utils.getWebsite(self.artistUrl))
+        return artist.Artist(self.__utils.get(self.artistUrl))

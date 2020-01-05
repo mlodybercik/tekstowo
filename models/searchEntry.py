@@ -32,11 +32,11 @@ class ArtistEntry(_SearchEntry):
 
     def getArtistObject(self):
         # F*ck python's static variable inheritance.
-        return artist.Artist(_SearchEntry._utils.getWebsite(urls.artist.format(self._parseArtistURL())))
+        return artist.Artist(_SearchEntry._utils.get(urls.artist.format(self._parseArtistURL())))
 
     def getAllSongs(self):
         songs = []
-        page = self._utils.getWebsite(urls.get_all_songs.format(self._parseArtistURL()))
+        page = self._utils.get(urls.get_all_songs.format(self._parseArtistURL()))
         list = page.find_all("div", "ranking-lista")[0].find_all("div", "box-przeboje")
         for song_ in list:
             songs.append(draft.Song(song_.find_all("a", "title")[0].get("title"), song_.find_all("a", "title")[0].get("href")))
@@ -49,4 +49,4 @@ class SongEntry(_SearchEntry):
         return "SongEntryObject: {}".format(self.name)
 
     def getLyricsObject(self):
-        return lyrics.Lyrics(_SearchEntry._utils.getWebsite(urls.base_w + self.url))
+        return lyrics.Lyrics(_SearchEntry._utils.get(urls.base_w + self.url))

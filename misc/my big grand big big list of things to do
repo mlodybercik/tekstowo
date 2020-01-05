@@ -1,0 +1,18 @@
+[ ] - Fix documentation:
+      [ ] - Fix classes to contain objects described in documentation
+      [ ] - Add documentation to missing parts
+
+[ ] - Change classes declarations:
+      [ ] - Change classes declaration to not need unneeded variables eg. comment class
+      [ ] - Change __init__'s in Lyrics and Artist to accept bs4 object *OR* url
+
+[v] - Add lots of Exceptions!
+
+[ ] - CLI way of basic interaction
+
+[ ] - Examples?
+
+[ ] - Create package!
+
+[?] - Not f*ck everything up.
+[0] - Find more bugs!

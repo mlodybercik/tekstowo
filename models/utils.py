@@ -89,7 +89,7 @@ class Utils:
     def __init__(self, jar=None):
         self.__jar = jar
 
-    def getWebsite(self, url, jar=None, *args, **kwargs):
+    def get(self, url, jar=None, *args, **kwargs):
         """Download page and return it as BeautifulSoup class"""
         all_headers = copy(Defaults._use_headers)
         all_headers.update(Defaults.headers)
