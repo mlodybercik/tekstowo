@@ -3,6 +3,7 @@ import tekstowo
 import models
 from datetime import date
 from models import draft
+import sys
 
 
 class TestLyrics(unittest.TestCase):
@@ -29,7 +30,7 @@ class TestLyrics(unittest.TestCase):
     def test_ID(self):
         self.assertEqual(self.lyrics.id, 36785, "bad id")
 
-    def test_comments(self):
+    def test_Comments(self):
         self.assertEqual(len(self.lyrics.getComments(0)), self.lyrics.commentCount)
 
 
@@ -48,9 +49,12 @@ class TestArtist(unittest.TestCase):
     def test_AmountOfFans(self):
         self.assertGreaterEqual(self.artist.amountOfFans, 9, "fans doesn't match")
 
-    def test_songList(self):
+    def test_SongList(self):
         self.assertEqual(len(self.artist.songList), 107, "amount of songs doesnt match")
         self.assertTrue(type(self.artist.songList[0]), draft.Song)
+
+    def test_Object(self):
+        self.assertIsInstance(self.artist.songList[0].getLyricsObject(), models.Lyrics)
 
 
 class TestSongSearch(unittest.TestCase):
@@ -122,4 +126,12 @@ class TestUser(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    if len(sys.argv) > 1:
+        if(sys.argv[1] in ["-u", "--user"]):
+            from getpass import getpass
+            tekstowo.login(input("Login: "), getpass("Password: "))
+            del sys.argv[1:]
+            unittest.main()
+            tekstowo.logout()
+    else:
+        unittest.main()

@@ -1,6 +1,5 @@
 import requests
 from bs4 import BeautifulSoup
-from copy import copy
 from urllib.parse import quote_plus
 from . import urls
 from . import exceptions
@@ -71,8 +70,9 @@ class TekstowoSession():
                                   data=payload,
                                   headers=Defaults._login_headers)
             # when login is succesful it redirects to /, if bad it stays at /logowanie.html
-            # i could also check if session cookie is set, but i think this
-            # also should work
+            # ~~i could also check if session cookie is set, but i think this
+            # also should work~~. it doesent work, session cookie is set immediately
+            # on first page lookup, later its just assigned as logged in.
             if(ret.ok):
                 if(ret.url == urls.login):
                     raise exceptions.TekstowoUnableToLogin("Bad login or password")
@@ -80,7 +80,7 @@ class TekstowoSession():
             else:
                 raise exceptions.TekstowoBadSite("ret.ok is not ok")
 
-    def __logout(self):
+    def logout(self):
         # can't logout when not logged in. stupid
         # technically unnecessary but better to
         if(self.is_logged):
@@ -88,31 +88,7 @@ class TekstowoSession():
             self.__jar = requests.Session()
 
     def __del__(self):
-        self.__logout()
+        self.logout()
 
     def get(self, url, *args, **kwargs):
         return parseSite(self.__jar.get(url, *args, **kwargs))
-
-
-class Utils:
-    """Utilities class,
-    to add proxies and headers overwrite Defaults.proxies and Defaults.headers"""
-    __jar = None
-
-    def __init__(self, jar=None):
-        self.__jar = jar
-
-    def get(self, url, jar=None, *args, **kwargs):
-        """Download page and return it as BeautifulSoup class"""
-        all_headers = copy(Defaults._use_headers)
-        all_headers.update(Defaults.headers)
-        if(not jar):
-            RAWpage = requests.get(url, proxies=Defaults.proxies, headers=all_headers)
-        elif(self.__jar):
-            RAWpage = jar.get(url, proxies=Defaults.proxies, headers=all_headers)
-        elif(type(jar) == TekstowoSession):
-            RAWpage = jar.get(url, proxies=Defaults.proxies, headers=all_headers)
-        else:
-            raise exceptions.TekstowoBadJar()
-
-        return parseSite(RAWpage)

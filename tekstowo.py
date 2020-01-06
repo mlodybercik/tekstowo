@@ -6,6 +6,12 @@ def login(login, password, session=models.session):
     session.login(login, password)
 
 
+def logout(session=models.session):
+    """Logout account. Alias of models.session.logout.
+    Be sure to logout before killing python or it will throw Exceptions."""
+    session.logout()
+
+
 def getText(url, session=models.session):
     """Downloads lyrics and some other stuff from site.
     See models/* for more.
@@ -42,6 +48,7 @@ def getAllTexts(artist_name=None, artist_url=None, session=models.session):
     elif artist_url:
         artist = getArtist(artist_url, session)
     else:
-        raise StopIteration("No parameters passed.")
+        raise models.exceptions.TekstowoBadObject("No parameters passed.")
     for i in artist.songList:
         yield i.getLyricsObject().text
+    raise StopIteration()
