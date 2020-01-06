@@ -19,12 +19,6 @@ month = {"stycznia": 1,
 
 
 def parseSite(requestObj):
-    try:
-        if requestObj.status_code != 200:
-            raise exceptions.TekstowoBadSite("Status code != 200")
-    except Exception:
-        raise("No network connection, bad proxy, or bad URL")
-    requestObj = str(bytes(requestObj.text, "ISO-8859-1"), "utf-8").strip("\n")
     page = BeautifulSoup(requestObj, "html5lib")
     return page
 
@@ -91,4 +85,13 @@ class TekstowoSession():
         self.logout()
 
     def get(self, url, *args, **kwargs):
-        return parseSite(self.__jar.get(url, *args, **kwargs))
+        return parseSite(self.raw_get(url, *args, **kwargs))
+
+    def raw_get(self, url, *args, **kwargs):
+        requestObj = self.__jar.get(url, *args, **kwargs)
+        try:
+            if requestObj.status_code != 200:
+                raise exceptions.TekstowoBadSite("Status code != 200")
+        except Exception:
+            raise("No network connection, bad proxy, or bad URL")
+        return str(bytes(requestObj.text, "ISO-8859-1"), "utf-8").strip("\n")

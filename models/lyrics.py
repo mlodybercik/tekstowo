@@ -183,12 +183,13 @@ class Lyrics:
                         commentList.append(comment.Comment(username, content, id, time, upVotes, url, replyID, childs))
                     else:
                         commentList.append(comment.Comment(username, content, id, time, upVotes, url, None, childs))
+                except Exception:
+                    commentList.append(comment.Comment("Exception", "Exception", 0, 0, 0, "Exception"))
+                finally:
                     if not(len(commentList) <= amount):
                         return commentList
                     if len(commentList) >= self.commentCount:
                         return commentList
-                except Exception:
-                    commentList.append(comment.Comment("Exception", "Exception", 0, 0, 0, "Exception"))
 
         # Failsafe
         return []
@@ -196,3 +197,33 @@ class Lyrics:
     def getArtistObject(self):
         """returns artist class"""
         return artist.Artist(self.session.get(self.artistUrl), self.session)
+
+    def _rankSong(self, action):
+        """Rank song. Returns 1 when succesfully voted, returns 2 when already logged.
+        Raises TekstowoNotLoggedIn when session is bad."""
+        if action not in ["Up", "Down"]:
+            raise exceptions.TekstowoBadObject(f"{action} is not a valid action")
+        if(self.session.islogged):
+            if(action == "Up"):
+                ret = self.session.raw_get(urls.rank_up.format(self.id))
+            else:
+                ret = self.session.raw_get(urls.rank_down.format(self.id))
+            if ret == '"voted_ip"':
+                return 2
+            elif ret == '"voted"':
+                return 2
+            elif ret == 'true':
+                return 1
+            elif ret == '"not logged"':
+                raise exceptions.TekstowoNotLoggedIn("Bad session. Site returned not logged in.")
+                return -1
+            else:
+                return ret
+
+    def rankSongUp(self):
+        """Vote up on song. Go see _rankSong for info."""
+        return self._rankSong("Up")
+
+    def rankSongDown(self):
+        """Vote down on song. Go see _rankSong for info."""
+        return self._rankSong("Down")

@@ -16,3 +16,8 @@ class TekstowoBadJar(Exception):
 class TekstowoBadObject(Exception):
     def init(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+
+class TekstowoNotLoggedIn(Exception):
+    def init(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)

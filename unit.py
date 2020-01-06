@@ -33,6 +33,10 @@ class TestLyrics(unittest.TestCase):
     def test_Comments(self):
         self.assertEqual(len(self.lyrics.getComments(0)), self.lyrics.commentCount)
 
+    @unittest.skipIf(not tekstowo.models.session.is_logged, "Not logged in")
+    def test_VoteUp(self):
+        self.assertGreaterEqual(self.lyrics.rankSongUp(), 1)
+
 
 class TestArtist(unittest.TestCase):
 
@@ -125,13 +129,19 @@ class TestUser(unittest.TestCase):
         self.assertEqual(len(self.user.fanof), 0)
 
 
+# idk, sometimes exit=True doesnt work
+# failsafe
+sys.exit = lambda a: print(a)
+
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         if(sys.argv[1] in ["-u", "--user"]):
             from getpass import getpass
             tekstowo.login(input("Login: "), getpass("Password: "))
             del sys.argv[1:]
-            unittest.main()
+            unittest.main(exit=False)
             tekstowo.logout()
+        else:
+            unittest.main()
     else:
         unittest.main()

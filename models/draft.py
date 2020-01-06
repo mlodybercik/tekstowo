@@ -34,7 +34,7 @@ class ArtistDraft(_Draft):
         return "{title}ArtistDraftObject".format(title=self.title)
 
     def getArtistObject(self):
-        return artist.Artist(self.session.get(self.url))
+        return artist.Artist(self.session.get(self.url), self.session)
 
 
 class Song(_Draft):
@@ -54,7 +54,7 @@ class Song(_Draft):
         return "{title}SongObject".format(title=self.title)
 
     def getLyricsObject(self):
-        return lyrics.Lyrics(self.session.get(self.url))
+        return lyrics.Lyrics(self.session.get(self.url), self.session)
 
 
 class UserDraft(_Draft):
@@ -73,4 +73,4 @@ class UserDraft(_Draft):
         return "{title}UserDraftObject".format(title=self.name)
 
     def getUserObject(self):
-        return user.User(self.session.get(self.url))
+        return user.User(self.session.get(self.url), self.session)
