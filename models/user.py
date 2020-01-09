@@ -6,10 +6,37 @@ from datetime import date
 
 
 class User:
-    "Class for storing info about user"
+    """Class for storing info about user
+    Local variables:
+     - register_date (date)
+     - last_login (date)
+     - count (str)
+     - city (str)
+     - about (str)
+     - login (str)
+     - name (str)
+     - age (int)
+     - sex (bool)
+     - gg (str)
+     - points (int)
+     - rank (int)
+     - noInvited (int)
+     - added ([int, int, int, int])
+     - edited ([int, int int])
+     - recent ([Song or [str, str]])
+     - fanof ([ArtistDraft])
+     - invitedUsers ([UserDraft])
+     - favSongs ([Song])
+    Local methods:
+     - getLyrics(self)
+     - getTranslations(self)
+     - getVideoclips(self)
+     - getSoundtracks(self)
+     - getInvited(self)
+    """
 
     # TODO: chnage those names xD
-    sex_table = {"Kobieta": 0, "Mężczyzna": 1}
+    sex_table = {"Kobieta": False, "Mężczyzna": True}
 
     def __init__(self, url, session=None):
         if not isinstance(session, TekstowoSession):
@@ -95,10 +122,6 @@ class User:
 
     def __getFanOf(self, page):
         fanof = []
-        # is this some unfunny *joke*?
-        # users invited are displayed as wykonawca class
-        # ugh, this site is such a mess
-        # failsafe VVV
         page = page.findAll("div", "box-big")[0]
         for i in page.find_all("div", "wykonawca"):
             fanof.append(draft.ArtistDraft(i.a.get("title"), i.a.get("href"), self.session))
@@ -106,6 +129,10 @@ class User:
         return fanof
 
     def __getInvited(self, page):
+        # is this some unfunny *joke*?
+        # users invited are displayed as wykonawca class
+        # ugh, this site is such a mess
+        # failsafe VVV
         if(not self.noInvited):
             return []
         invited = []
@@ -134,13 +161,15 @@ class User:
             pages = 1
         else:
             pages = int(navigation[0].findAll("a", "page")[-1].get("title"))
-            print(pages)
         del navigation
         while(not last):
             for i in page.findAll("div", search):
                 try:
                     try:
-                        yield _class(i.a.get("title"), i.a.get("href"), self.session)
+                        title = i.a.get("title")
+                        if title is None:
+                            title = i.a.img.get("alt")
+                        yield _class(title, i.a.get("href"), self.session)
                     except AttributeError:
                         yield _class(i.text.strip(), i.a.get("href"), self.session)
                 except AttributeError:
@@ -153,8 +182,8 @@ class User:
                 page = page.findAll("div", "content")[0]
 
             else:
-                raise StopIteration
-        raise StopIteration
+                return
+        return
 
     def getLyrics(self):
         return self._getAdv(urls.added_texts_page)

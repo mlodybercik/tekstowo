@@ -128,6 +128,17 @@ class TestUser(unittest.TestCase):
         self.assertEqual(len(self.user.recent), 10)
         self.assertEqual(len(self.user.fanof), 0)
 
+    def test_Generators(self):
+        for gen in [self.user.getInvited(),
+                    self.user.getLyrics(),
+                    self.user.getSoundtracks(),
+                    self.user.getTranslations(),
+                    self.user.getVideoclips()]:
+            try:
+                self.assertIsNot(next(gen), next(gen), str(gen))
+            except StopIteration:
+                pass
+
 
 # idk, sometimes exit=True doesnt work
 # failsafe

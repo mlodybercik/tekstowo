@@ -24,6 +24,8 @@ class Lyrics:
     Local methods: # rather self explanatory
      - getComments(self, amount=30, startFrom=0)
      - getArtistObject(self)
+     - rankSongUp(self)
+     - rankSongDown(self)
     """
 
     session = None
@@ -199,7 +201,7 @@ class Lyrics:
         return artist.Artist(self.session.get(self.artistUrl), self.session)
 
     def _rankSong(self, action):
-        """Rank song. Returns 1 when succesfully voted, returns 2 when already logged.
+        """Rank song. Returns 1 when succesfully voted, returns 2 when already voted.
         Raises TekstowoNotLoggedIn when session is bad."""
         if action not in ["Up", "Down"]:
             raise exceptions.TekstowoBadObject(f"{action} is not a valid action")

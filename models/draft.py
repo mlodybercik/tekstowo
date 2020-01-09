@@ -62,15 +62,15 @@ class UserDraft(_Draft):
         this isn't a User object.
 
     Local variables:
-     - name (str)
+     - title (str)
      - url (str)
 
      Local methods:
-     - getArtistObject
+     - getUserObject
     """
 
     def __repr__(self):
-        return "{title}UserDraftObject".format(title=self.name)
+        return "{title}UserDraftObject".format(title=self.title)
 
     def getUserObject(self):
         return user.User(self.session.get(self.url), self.session)

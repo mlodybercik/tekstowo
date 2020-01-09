@@ -51,4 +51,4 @@ def getAllTexts(artist_name=None, artist_url=None, session=models.session):
         raise models.exceptions.TekstowoBadObject("No parameters passed.")
     for i in artist.songList:
         yield i.getLyricsObject().text
-    raise StopIteration()
+    return
