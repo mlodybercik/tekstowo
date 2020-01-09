@@ -1,7 +1,9 @@
-import traceback
 from . import artist
 from . import comment
 from . import utils
+from . import urls
+from . import exceptions
+from bs4 import BeautifulSoup
 
 
 class Lyrics:
@@ -22,15 +24,23 @@ class Lyrics:
     Local methods: # rather self explanatory
      - getComments(self, amount=30, startFrom=0)
      - getArtistObject(self)
+     - rankSongUp(self)
+     - rankSongDown(self)
     """
 
-    __utils = utils.Utils()
+    session = None
 
-    def __init__(self, page):
-        """Initialized with site to parse (lyrics page)"""
-        if str(type(page)) != "<class 'bs4.BeautifulSoup'>":
-            raise("Passed page is not a BeautifulSoup class")
+    def __init__(self, page, session=None):
+        if not isinstance(page, BeautifulSoup):
+            raise exceptions.TekstowoBadObject("Passed page is not a BeautifulSoup class")
+        if not isinstance(session, utils.TekstowoSession):
+            raise exceptions.TekstowoBadJar("Passed object is not a TekstowoSession")
+        self.session = session
         self.__parse__(page)
+
+    @classmethod
+    def from_url(cls, url, session):
+        return cls(session.get(url), session)
 
     def __str__(self):
         return "{artist}:{song}".format(artist=self.artist, song=self.songName)
@@ -46,7 +56,7 @@ class Lyrics:
         try:
             artist_ = page.find_all("div", "left-corner")[0].find_all("a", "green")[2].get("title")
             return artist_
-        except:
+        except Exception:
             return None
 
     def __getSongName(self, page):
@@ -86,37 +96,37 @@ class Lyrics:
 
     def __getArtistUrl(self, page):
         try:
-            return "http://www.tekstowo.pl" + page.find_all("a", "link-wykonawca")[0].get("href")
+            return urls.base_w + page.find_all("a", "link-wykonawca")[0].get("href")
         except IndexError:
             return None
 
     def __getID(self, page):
         try:
             return int(page.find_all("a", "pokaz-rev")[0].get("song_id"))
-        except:
+        except Exception:
             return -1
 
     def __getCommentCount(self, page):
         try:
             return int(page.find_all("h2", "margint10")[0].getText().strip("Komentarze ():"))
-        except:
+        except Exception:
             return -1
 
     def __getUpVotes(self, page):
         try:
             return int(page.find_all("div", "glosowanie")[0].find_all("span", "rank")[0].getText().strip("(+)"))
-        except:
+        except Exception:
             return -1
 
     def __parse__(self, page):
         """Uses other functions to parse website for information"""
-        self.artist       = self.__getArtist(page)
-        self.songName     = self.__getSongName(page)
-        self.url          = self.__getUrl(page)
-        self.artistUrl    = self.__getArtistUrl(page)
-        self.id           = self.__getID(page)
+        self.artist = self.__getArtist(page)
+        self.songName = self.__getSongName(page)
+        self.url = self.__getUrl(page)
+        self.artistUrl = self.__getArtistUrl(page)
+        self.id = self.__getID(page)
         self.commentCount = self.__getCommentCount(page)
-        self.upVotes      = self.__getUpVotes(page)
+        self.upVotes = self.__getUpVotes(page)
 
         if self.__hasText(page):
             self.hasText = True
@@ -137,14 +147,19 @@ class Lyrics:
         comment in order with its replies
 
         returns [Comment]"""
-        commentList = []
-        if amount == 0:
+
+        if self.commentCount == 0:
+            return []
+
+        if amount > self.commentCount:
             amount = self.commentCount
-        else:
-            amount = amount - 1
+        elif amount == 0:
+            amount = self.commentCount
+
         start = 0
-        while True:  # I shouldn't do that
-            site = self.__utils.getWebsite("http://www.tekstowo.pl/js,moreComments,S,{},{}".format(self.id, startFrom+start+len(commentList)))
+        commentList = []
+        while len(commentList) < amount:
+            site = self.session.get(urls.get_coments.format(self.id, startFrom+start+len(commentList)))
             for comment_ in site.find_all("div", "komentarz"):
                 try:
                     childs = []
@@ -158,30 +173,59 @@ class Lyrics:
                     id = comment_.find_all("div", "p")[0].div.get("id")[8:]
                     if "↓" in comment_.p.getText().strip():
                         replyID = comment_.find_all("p")[0].a.get("onclick")[19:-1]
-                        replies = self.__utils.getWebsite("http://www.tekstowo.pl/js,showParent,{}".format(replyID))
+                        replies = self.session.get(urls.get_replies.format(replyID))
                         for reply in replies.find_all("div", "komentarz "):
                             reply_username = reply.a.get("title")
                             reply_content = reply.find_all("div", "p")[0].get_text().strip()
                             reply_url = reply.find_all("a")[0].get("href")
                             reply_time = reply.find_all("div", "bar")[0].contents[2].split()
-                            print(reply.find_all("div", "bar")[0].contents[2].split())
                             reply_upVotes = reply.find_all("div", "icons")[0].span.get_text()[1:-1]
                             childs.append(comment.Comment(reply_username, reply_content, None, reply_time, reply_upVotes, reply_url, None))
                     if replyID is not None:
                         commentList.append(comment.Comment(username, content, id, time, upVotes, url, replyID, childs))
                     else:
                         commentList.append(comment.Comment(username, content, id, time, upVotes, url, None, childs))
+                except Exception:
+                    commentList.append(comment.Comment("Exception", "Exception", 0, 0, 0, "Exception"))
+                finally:
                     if not(len(commentList) <= amount):
                         return commentList
                     if len(commentList) >= self.commentCount:
                         return commentList
-                except Exception:
-                    traceback.print_exc()
-                    commentList.append(comment.Comment("Exception", "Exception", 0, 0, 0, "Exception"))
 
         # Failsafe
         return []
 
     def getArtistObject(self):
         """returns artist class"""
-        return artist.Artist(self.__utils.getWebsite(self.artistUrl))
+        return artist.Artist(self.session.get(self.artistUrl), self.session)
+
+    def _rankSong(self, action):
+        """Rank song. Returns 1 when succesfully voted, returns 2 when already voted.
+        Raises TekstowoNotLoggedIn when session is bad."""
+        if action not in ["Up", "Down"]:
+            raise exceptions.TekstowoBadObject(f"{action} is not a valid action")
+        if(self.session.islogged):
+            if(action == "Up"):
+                ret = self.session.raw_get(urls.rank_up.format(self.id))
+            else:
+                ret = self.session.raw_get(urls.rank_down.format(self.id))
+            if ret == '"voted_ip"':
+                return 2
+            elif ret == '"voted"':
+                return 2
+            elif ret == 'true':
+                return 1
+            elif ret == '"not logged"':
+                raise exceptions.TekstowoNotLoggedIn("Bad session. Site returned not logged in.")
+                return -1
+            else:
+                return ret
+
+    def rankSongUp(self):
+        """Vote up on song. Go see _rankSong for info."""
+        return self._rankSong("Up")
+
+    def rankSongDown(self):
+        """Vote down on song. Go see _rankSong for info."""
+        return self._rankSong("Down")

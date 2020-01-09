@@ -1,5 +1,8 @@
-from . import song
+from . import draft
 from . import utils
+from . import urls
+from . import exceptions
+from bs4 import BeautifulSoup
 
 
 class Artist:
@@ -14,14 +17,21 @@ class Artist:
      Local methods:
      - None
     """
-    _utils = utils.Utils()
+    _session = None
     _valid_keys = [["a", "albums"],
                    ["s", "songlist", "songs"]]
 
-    def __init__(self, page):
-        if str(type(page)) != "<class 'bs4.BeautifulSoup'>":
-            raise("Passed page is not a BeautifulSoup class")
+    def __init__(self, page, session=None):
+        if not isinstance(page, BeautifulSoup):
+            raise exceptions.TekstowoBadObject("Passed page is not a BeautifulSoup class")
+        if not isinstance(session, utils.TekstowoSession):
+            raise exceptions.TekstowoBadJar("Passed object is not a TekstowoSession")
+        self.session = session
         self.__parse__(page)
+
+    @classmethod
+    def from_url(cls, url, session):
+        return cls(session.get(url), session)
 
     def __str__(self):
         return "{}".format(self.name)
@@ -35,7 +45,7 @@ class Artist:
         elif key.casefold() in self._valid_keys[1]:
             return self.songList
         else:
-            raise(Exception("Given key is not valid {}".format(key)))
+            raise Exception("Given key is not valid {}".format(key))
 
     def __getName(self, page):
         """Returns artist name"""
@@ -66,15 +76,16 @@ class Artist:
         """Returns list of songs"""
         songs = []
         name = page.find_all("div", "left-corner")[0].find_all("a", "green")[3].get("href")[11:-5:]
-        page = self._utils.getWebsite("http://www.tekstowo.pl/piosenki_artysty,{},alfabetycznie,strona,0.html".format(name))
+        page = self.session.get(urls.artist_songs.format(name))
         list = page.find_all("div", "ranking-lista")[0].find_all("div", "box-przeboje")
         for song_ in list:
-            songs.append(song.Song(song_.find_all("a", "title")[0].get("title"), song_.find_all("a", "title")[0].get("href")))
+            a = song_.find_all("a", "title")[0]
+            songs.append(draft.Song(a.get("title"), a.get("href"), self.session))
         return songs
 
     def __parse__(self, page):
-        self.name           = self.__getName(page)
-        self.aboutArtist    = self.__getAboutArtist(page)
-        self.albums         = self.__getAlbums(page)
-        self.amountOfFans   = self.__getAmountOfFans(page)
-        self.songList       = self.__getSongList(page)
+        self.name = self.__getName(page)
+        self.aboutArtist = self.__getAboutArtist(page)
+        self.albums = self.__getAlbums(page)
+        self.amountOfFans = self.__getAmountOfFans(page)
+        self.songList = self.__getSongList(page)

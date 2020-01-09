@@ -1,21 +1,25 @@
 from . import artist
 from . import lyrics
+from . import draft
+from . import urls
+from . import exceptions
 from . import utils
-from . import song
+
 
 class _SearchEntry():
     """Main class containing entries for search class
     Local variables:
      - name (str)
-     - url (str) # without tekstowo.pl
+     - url (str) # without base of url (domain)
     """
-
-    _utils = utils.Utils()
 
     def __str__(self):
         return self.name
 
-    def __init__(self, name, url):
+    def __init__(self, name, url, session=None):
+        if not isinstance(session, utils.TekstowoSession):
+            raise exceptions.TekstowoBadObject("Passed wrong object.")
+        self.session = session
         self.name = name
         self.url = url
 
@@ -29,15 +33,14 @@ class ArtistEntry(_SearchEntry):
         return self.url.split(",")[1].split(".")[0]
 
     def getArtistObject(self):
-        # F*ck python's static variable inheritance.
-        return artist.Artist(_SearchEntry._utils.getWebsite("https://www.tekstowo.pl/wykonawca," + self._parseArtistURL() + ".html"))
+        return artist.Artist(self.session.get(urls.artist.format(self._parseArtistURL())), self.session)
 
     def getAllSongs(self):
         songs = []
-        page = self._utils.getWebsite("https://www.tekstowo.pl/piosenki_artysty,{},alfabetycznie,strona,0.html".format(self._parseArtistURL()))
+        page = self.session.get(urls.get_all_songs.format(self._parseArtistURL()))
         list = page.find_all("div", "ranking-lista")[0].find_all("div", "box-przeboje")
         for song_ in list:
-            songs.append(song.Song(song_.find_all("a", "title")[0].get("title"), song_.find_all("a", "title")[0].get("href")))
+            songs.append(draft.Song(song_.find_all("a", "title")[0].get("title"), song_.find_all("a", "title")[0].get("href"), self.session))
         return songs
 
 
@@ -47,4 +50,4 @@ class SongEntry(_SearchEntry):
         return "SongEntryObject: {}".format(self.name)
 
     def getLyricsObject(self):
-        return lyrics.Lyrics(_SearchEntry._utils.getWebsite("https://www.tekstowo.pl" + self.url))
+        return lyrics.Lyrics(self.session.get(urls.base_w + self.url), self.session)
