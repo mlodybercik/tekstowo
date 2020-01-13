@@ -33,7 +33,7 @@ class TestLyrics(unittest.TestCase):
     def test_Comments(self):
         self.assertEqual(len(self.lyrics.getComments(0)), self.lyrics.commentCount)
 
-    @unittest.skipIf(not tekstowo.models.session.is_logged, "Not logged in")
+    @unittest.skipIf(not tekstowo.models.session.isLogged, "Not logged in")
     def test_VoteUp(self):
         self.assertGreaterEqual(self.lyrics.rankSongUp(), 1)
 
@@ -107,7 +107,7 @@ class TestUser(unittest.TestCase):
     def test_Desc(self):
         self.assertEqual(self.user.login, "bombelbombel", "invalid name")
         self.assertEqual(self.user.name, "")
-        self.assertEqual(self.user.register_date, date(2009, 7, 7))
+        self.assertEqual(self.user.registerDate, date(2009, 7, 7))
         self.assertEqual(self.user.gg, -1)
 
     def test_Added(self):
@@ -142,7 +142,7 @@ class TestUser(unittest.TestCase):
 
 # idk, sometimes exit=True doesnt work
 # failsafe
-sys.exit = lambda a: print(a)
+sys.exit = lambda a: 0
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

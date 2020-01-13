@@ -1,3 +1,4 @@
+"""File holding draftobjects declarations"""
 from . import user
 from . import artist
 from . import urls
@@ -13,7 +14,7 @@ class _Draft:
             raise exceptions.TekstowoBadObject("Passed wrong object")
         self.session = session
         self.title = title
-        self.url = urls.base_w + url
+        self.url = urls.BASE_W + url
 
     def __str__(self):
         return "{title}:{url}".format(title=self.title, url=self.url)
@@ -36,6 +37,7 @@ class ArtistDraft(_Draft):
         return "{title}ArtistDraftObject".format(title=self.title)
 
     def getArtistObject(self):
+        """Create Artist object from url"""
         return artist.Artist(self.session.get(self.url), self.session)
 
 
@@ -57,6 +59,7 @@ class Song(_Draft):
         return "{title}SongObject".format(title=self.title)
 
     def getLyricsObject(self):
+        """Create Lyrics object from url"""
         return lyrics.Lyrics(self.session.get(self.url), self.session)
 
 
@@ -77,4 +80,5 @@ class UserDraft(_Draft):
         return "{title}UserDraftObject".format(title=self.title)
 
     def getUserObject(self):
+        """Create User object from url"""
         return user.User(self.session.get(self.url), self.session)

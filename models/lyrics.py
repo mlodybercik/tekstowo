@@ -1,9 +1,10 @@
+"""Main file holding logic for parsing lyrics."""
+from bs4 import BeautifulSoup
 from . import artist
 from . import comment
 from . import utils
 from . import urls
 from . import exceptions
-from bs4 import BeautifulSoup
 
 
 class Lyrics:
@@ -40,7 +41,8 @@ class Lyrics:
         self.__parse__(page)
 
     @classmethod
-    def from_url(cls, url, session):
+    def fromUrl(cls, url, session):
+        """Get text from given url"""
         return cls(session.get(url), session)
 
     def __str__(self):
@@ -52,90 +54,87 @@ class Lyrics:
     def __int__(self):
         return self.id
 
-    def __getArtist(self, page):
+    @exceptions.catchAndReturn(bool)
+    def __getArtist__(self, page):
         """Returns artist name"""
-        try:
-            artist_ = page.find_all("div", "left-corner")[0].find_all("a", "green")[2].get("title")
-            return artist_
-        except Exception:
-            return None
+        return page.find_all("div", "left-corner")[0].find_all("a", "green")[2].get("title")
 
-    def __getSongName(self, page):
+
+    def __getSongName__(self, page):
         """Returns song name"""
         songname = page.find_all("div", "left-corner")[0].find_all("a", "green")[3].get("title")
         return songname
 
-    def __getUrl(self, page):
+    def __getUrl__(self, page):
         """Returns url of a page"""
         url = page.find_all("meta")
         for meta in url:
             if meta.get("property") == "og:url":
                 return meta.get("content")
 
-    def __hasText(self, page):
+    def __hasText__(self, page):
         """Returns True if song has text"""
         if page.find_all("div", "tekst")[0].find_all("div", "song-text"):
             return True
         else:
             return False
 
-    def __getText(self, page):
+    def __getText__(self, page):
         """Returns string with song lyrics"""
         text = page.find_all("div", "song-text")[0].get_text()
         return text[65:-130].lstrip().rstrip()
 
-    def __hasTranslation(self, page):
+    def __hasTranslation__(self, page):
         """Returns True if there is is translation for a given song"""
-        if page.find_all("div", "tlumaczenie")[0].find_all("a", "pokaz-tlumaczenie")[0].get("title") == "Pokaż tłumaczenie":
+        if page.find_all("div", "tlumaczenie")[0]\
+            .find_all("a", "pokaz-tlumaczenie")[0]\
+            .get("title") == "Pokaż tłumaczenie":
             return True
         else:
             return False
 
-    def __getTranslation(self, page):
+    def __getTranslation__(self, page):
         """Returns text translation for given page"""
         return page.find(id="translation").get_text()[:-130].lstrip().rstrip()
 
-    def __getArtistUrl(self, page):
-        try:
-            return urls.base_w + page.find_all("a", "link-wykonawca")[0].get("href")
-        except IndexError:
-            return None
+    @exceptions.catchAndReturn(bool)
+    def __getArtistUrl__(self, page):
+        return urls.BASE_W + page.find_all("a", "link-wykonawca")[0].get("href")
 
-    def __getID(self, page):
-        try:
-            return int(page.find_all("a", "pokaz-rev")[0].get("song_id"))
-        except Exception:
-            return -1
+    @exceptions.catchAndReturn(bool)
+    def __getID__(self, page):
+        return int(page.find_all("a", "pokaz-rev")[0].get("song_id"))
 
-    def __getCommentCount(self, page):
-        try:
-            return int(page.find_all("h2", "margint10")[0].getText().strip("Komentarze ():"))
-        except Exception:
-            return -1
+    @exceptions.catchAndReturn(bool)
+    def __getCommentCount__(self, page):
+        return int(page.find_all("h2", "margint10")[0].getText().strip("Komentarze ():"))
 
-    def __getUpVotes(self, page):
-        try:
-            return int(page.find_all("div", "glosowanie")[0].find_all("span", "rank")[0].getText().strip("(+)"))
-        except Exception:
-            return -1
+    @exceptions.catchAndReturn(bool)
+    def __getUpVotes__(self, page):
+        return int(page.find_all("div", "glosowanie")[0]\
+                   .find_all("span", "rank")[0]\
+                   .getText().strip("(+)"))
 
     def __parse__(self, page):
         """Uses other functions to parse website for information"""
-        self.artist = self.__getArtist(page)
-        self.songName = self.__getSongName(page)
-        self.url = self.__getUrl(page)
-        self.artistUrl = self.__getArtistUrl(page)
-        self.id = self.__getID(page)
-        self.commentCount = self.__getCommentCount(page)
-        self.upVotes = self.__getUpVotes(page)
+        self.artist = self.__getArtist__(page)
+        self.songName = self.__getSongName__(page)
+        self.url = self.__getUrl__(page)
+        self.artistUrl = self.__getArtistUrl__(page)
+        self.id = self.__getID__(page) # pylint: disable=C0103
+        self.commentCount = self.__getCommentCount__(page)
+        self.upVotes = self.__getUpVotes__(page)
 
-        if self.__hasText(page):
+        if self.__hasText__(page):
             self.hasText = True
-            self.text = self.__getText(page)
+            self.text = self.__getText__(page)
             # No need to check for translation if there is not even a normal text
-            if self.__hasTranslation(page):
+            if self.__hasTranslation__(page):
                 self.hasTranslation = True
-                self.translation = self.__getTranslation(page)
+                self.translation = self.__getTranslation__(page)
+            else:
+                self.hasTranslation = False
+                self.translation = None
         else:
             self.hasText = False
             self.text = None
@@ -157,45 +156,53 @@ class Lyrics:
         elif amount == 0:
             amount = self.commentCount
 
+        if startFrom > self.commentCount:
+            return []
+
         start = 0
         commentList = []
-        while len(commentList) < amount:
-            site = self.session.get(urls.get_coments.format(self.id, startFrom+start+len(commentList)))
-            for comment_ in site.find_all("div", "komentarz"):
+        done = False
+        while (len(commentList) < amount) and not done:
+            site = self.session.get(urls.GET_COMMENTS.format(self.id,
+                                                             startFrom+start+len(commentList)))
+            for _comment in site.find_all("div", "komentarz"):
                 try:
                     childs = []
                     replyID = None
                     # this looks awful
-                    username = comment_.a.get("title")
-                    content = comment_.find_all("div", "p")[0].get_text().strip()
-                    upVotes = comment_.find_all("div", "icons")[0].span.get_text()[1:-1]
-                    url = comment_.find_all("a")[0].get("href")
-                    time = comment_.find_all("div", "bar")[0].contents[2].split()
-                    id_ = comment_.find_all("div", "p")[0].div.get("id")[8:]
-                    if "↓" in comment_.p.getText().strip():
-                        replyID = comment_.find_all("p")[0].a.get("onclick")[19:-1]
-                        replies = self.session.get(urls.get_replies.format(replyID))
+                    username = _comment.a.get("title")
+                    content = _comment.find_all("div", "p")[0].get_text().strip()
+                    upVotes = _comment.find_all("div", "icons")[0].span.get_text()[1:-1]
+                    url = _comment.find_all("a")[0].get("href")
+                    time = _comment.find_all("div", "bar")[0].contents[2].split()
+                    id_ = _comment.find_all("div", "p")[0].div.get("id")[8:] # pylint: disable=C0103
+                    if "↓" in _comment.p.getText().strip():
+                        replyID = _comment.find_all("p")[0].a.get("onclick")[19:-1]
+                        replies = self.session.get(urls.GET_REPLIES.format(replyID))
                         for reply in replies.find_all("div", "komentarz "):
-                            reply_username = reply.a.get("title")
-                            reply_content = reply.find_all("div", "p")[0].get_text().strip()
-                            reply_url = reply.find_all("a")[0].get("href")
-                            reply_time = reply.find_all("div", "bar")[0].contents[2].split()
-                            reply_upVotes = reply.find_all("div", "icons")[0].span.get_text()[1:-1]
-                            childs.append(comment.Comment(reply_username, reply_content, None, reply_time, reply_upVotes, reply_url, None))
+                            replyUsername = reply.a.get("title")
+                            replyContent = reply.find_all("div", "p")[0].get_text().strip()
+                            replyUrl = reply.find_all("a")[0].get("href")
+                            replyTime = reply.find_all("div", "bar")[0].contents[2].split()
+                            replyUpVotes = reply.find_all("div", "icons")[0].span.get_text()[1:-1]
+                            childs.append(comment.Comment(replyUsername, replyContent,
+                                                          None, replyTime, replyUpVotes,
+                                                          replyUrl, None))
                     if replyID is not None:
-                        commentList.append(comment.Comment(username, content, id_, time, upVotes, url, replyID, childs))
+                        commentList.append(comment.Comment(username, content,
+                                                           id_, time, upVotes,
+                                                           url, replyID, childs))
                     else:
-                        commentList.append(comment.Comment(username, content, id_, time, upVotes, url, None, childs))
-                except Exception:
-                    commentList.append(comment.Comment("Exception", "Exception", 0, 0, 0, "Exception"))
+                        commentList.append(comment.Comment(username, content,
+                                                           id_, time, upVotes,
+                                                           url, None, childs))
+                except Exception: # FIXME: too broad except
+                    commentList.append(comment.Comment.empty())
                 finally:
-                    if not(len(commentList) <= amount):
-                        return commentList
-                    if len(commentList) >= self.commentCount:
-                        return commentList
+                    if not(len(commentList) <= amount) or len(commentList) >= self.commentCount:
+                        done = True
 
-        # Failsafe
-        return []
+        return commentList
 
     def getArtistObject(self):
         """returns artist class"""
@@ -206,11 +213,11 @@ class Lyrics:
         Raises TekstowoNotLoggedIn when session is bad."""
         if action not in ["Up", "Down"]:
             raise exceptions.TekstowoBadObject(f"{action} is not a valid action")
-        if(self.session.islogged):
-            if(action == "Up"):
-                ret = self.session.raw_get(urls.rank_up.format(self.id))
+        if self.session.islogged:
+            if action == "Up":
+                ret = self.session.raw_get(urls.RANK_UP.format(self.id))
             else:
-                ret = self.session.raw_get(urls.rank_down.format(self.id))
+                ret = self.session.raw_get(urls.RANK_DOWN.format(self.id))
             if ret == '"voted_ip"':
                 return 2
             elif ret == '"voted"':

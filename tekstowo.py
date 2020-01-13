@@ -1,3 +1,4 @@
+"""Main file for tekstowo.py"""
 import models
 
 
@@ -16,19 +17,19 @@ def getText(url, session=models.session):
     """Downloads lyrics and some other stuff from site.
     See models/* for more.
     *(whole url, starting with https://...)*"""
-    return models.Lyrics.from_url(url, session)
+    return models.Lyrics.fromUrl(url, session)
 
 
 def getArtist(url, session=models.session):
     """Downloads artist info and some other stuff from site.
     See models/* for more.
     *(whole url, starting with https://...)*"""
-    return models.Artist.from_url(url, session)
+    return models.Artist.fromUrl(url, session)
 
 
 def getUser(username, session=models.session):
     """Downloads information about user."""
-    return models.User.from_login(username, session)
+    return models.User.fromLogin(username, session)
 
 
 def searchArtist(artistName, session=models.session):
