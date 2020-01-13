@@ -12,6 +12,7 @@ class User:
      - last_login (date)
      - count (str)
      - city (str)
+     - county (str)
      - about (str)
      - login (str)
      - name (str)
@@ -35,7 +36,11 @@ class User:
      - getInvited(self)
     """
 
-    # TODO: chnage those names xD
+    __slots__ = ["session", "register_date", "last_login", "count", "city", "about",
+                "login", "name", "age", "sex", "gg", "points", "rank",
+                "noInvited", "added", "edited", "recent", "fanof",
+                "invitedUsers", "favSongs", "county"]
+
     sex_table = {"Kobieta": False, "Mężczyzna": True}
 
     def __init__(self, url, session=None):

@@ -7,6 +7,7 @@ from . import exceptions
 
 
 class _Draft:
+    __slots__ = ["title", "url", "session"]
     def __init__(self, title, url, session=None):
         if not isinstance(session, utils.TekstowoSession):
             raise exceptions.TekstowoBadObject("Passed wrong object")
@@ -30,6 +31,7 @@ class ArtistDraft(_Draft):
      - getArtistObject
     """
 
+    __slots__ = ["title", "url", "session"]
     def __repr__(self):
         return "{title}ArtistDraftObject".format(title=self.title)
 
@@ -50,6 +52,7 @@ class Song(_Draft):
      - getLyricsObject
     """
 
+    __slots__ = ["title", "url", "session"]
     def __repr__(self):
         return "{title}SongObject".format(title=self.title)
 
@@ -69,6 +72,7 @@ class UserDraft(_Draft):
      - getUserObject
     """
 
+    __slots__ = ["title", "url", "session"]
     def __repr__(self):
         return "{title}UserDraftObject".format(title=self.title)
 

@@ -14,7 +14,7 @@ class Lyrics:
      - url (str)
      - hasText (bool)
      - hasTranslation (bool)
-     - text (str) # Very long string, TODO: fix it later
+     - text (str) # can be very long
      - translation (str)
      - artistUrl (str)
      - commentCount (int)
@@ -28,7 +28,8 @@ class Lyrics:
      - rankSongDown(self)
     """
 
-    session = None
+    __slots__ = ["session", "artist", "songName", "url", "hasText", "hasTranslation",
+                 "text", "translation", "artistUrl", "commentCount", "id", "upVotes"]
 
     def __init__(self, page, session=None):
         if not isinstance(page, BeautifulSoup):
@@ -170,7 +171,7 @@ class Lyrics:
                     upVotes = comment_.find_all("div", "icons")[0].span.get_text()[1:-1]
                     url = comment_.find_all("a")[0].get("href")
                     time = comment_.find_all("div", "bar")[0].contents[2].split()
-                    id = comment_.find_all("div", "p")[0].div.get("id")[8:]
+                    id_ = comment_.find_all("div", "p")[0].div.get("id")[8:]
                     if "↓" in comment_.p.getText().strip():
                         replyID = comment_.find_all("p")[0].a.get("onclick")[19:-1]
                         replies = self.session.get(urls.get_replies.format(replyID))
@@ -182,9 +183,9 @@ class Lyrics:
                             reply_upVotes = reply.find_all("div", "icons")[0].span.get_text()[1:-1]
                             childs.append(comment.Comment(reply_username, reply_content, None, reply_time, reply_upVotes, reply_url, None))
                     if replyID is not None:
-                        commentList.append(comment.Comment(username, content, id, time, upVotes, url, replyID, childs))
+                        commentList.append(comment.Comment(username, content, id_, time, upVotes, url, replyID, childs))
                     else:
-                        commentList.append(comment.Comment(username, content, id, time, upVotes, url, None, childs))
+                        commentList.append(comment.Comment(username, content, id_, time, upVotes, url, None, childs))
                 except Exception:
                     commentList.append(comment.Comment("Exception", "Exception", 0, 0, 0, "Exception"))
                 finally:
@@ -218,7 +219,6 @@ class Lyrics:
                 return 1
             elif ret == '"not logged"':
                 raise exceptions.TekstowoNotLoggedIn("Bad session. Site returned not logged in.")
-                return -1
             else:
                 return ret
 

@@ -1,9 +1,9 @@
 import models
 
 
-def login(login, password, session=models.session):
+def login(username, password, session=models.session):
     """Log default session in to use features of logged in user."""
-    session.login(login, password)
+    session.login(username, password)
 
 
 def logout(session=models.session):
@@ -26,9 +26,9 @@ def getArtist(url, session=models.session):
     return models.Artist.from_url(url, session)
 
 
-def getUser(login, session=models.session):
+def getUser(username, session=models.session):
     """Downloads information about user."""
-    return models.User.from_login(login, session)
+    return models.User.from_login(username, session)
 
 
 def searchArtist(artistName, session=models.session):

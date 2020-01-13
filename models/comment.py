@@ -21,6 +21,8 @@ class Comment:
      - month - Containing all twelve months lmao
     """
 
+    __slots__ = ["username", "content", "id", "timedate", "upVotes", "url", "childComments", "replyID"]
+
     def __init__(self, username, content, id, timedate, upVotes, url, replyID=None, childComments=None):
         self.username = username
         self.content = content

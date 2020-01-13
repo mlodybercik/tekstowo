@@ -17,16 +17,15 @@ class Artist:
      Local methods:
      - None
     """
-    _session = None
-    _valid_keys = [["a", "albums"],
-                   ["s", "songlist", "songs"]]
+    __slots__ = ["_session", "_valid_keys", "name",
+                 "aboutArtist", "albums", "amountOfFans", "songList"]
 
     def __init__(self, page, session=None):
         if not isinstance(page, BeautifulSoup):
             raise exceptions.TekstowoBadObject("Passed page is not a BeautifulSoup class")
         if not isinstance(session, utils.TekstowoSession):
             raise exceptions.TekstowoBadJar("Passed object is not a TekstowoSession")
-        self.session = session
+        self._session = session
         self.__parse__(page)
 
     @classmethod
@@ -40,9 +39,9 @@ class Artist:
         return "{}ArtistObject".format(self.name)
 
     def __getitem__(self, key):
-        if key.casefold() in self._valid_keys[0]:
+        if key.casefold() in ["a", "albums"]:
             return self.albums
-        elif key.casefold() in self._valid_keys[1]:
+        elif key.casefold() in ["s", "songlist", "songs"]:
             return self.songList
         else:
             raise Exception("Given key is not valid {}".format(key))
@@ -76,11 +75,11 @@ class Artist:
         """Returns list of songs"""
         songs = []
         name = page.find_all("div", "left-corner")[0].find_all("a", "green")[3].get("href")[11:-5:]
-        page = self.session.get(urls.artist_songs.format(name))
-        list = page.find_all("div", "ranking-lista")[0].find_all("div", "box-przeboje")
-        for song_ in list:
+        page = self._session.get(urls.artist_songs.format(name))
+        list_ = page.find_all("div", "ranking-lista")[0].find_all("div", "box-przeboje")
+        for song_ in list_:
             a = song_.find_all("a", "title")[0]
-            songs.append(draft.Song(a.get("title"), a.get("href"), self.session))
+            songs.append(draft.Song(a.get("title"), a.get("href"), self._session))
         return songs
 
     def __parse__(self, page):

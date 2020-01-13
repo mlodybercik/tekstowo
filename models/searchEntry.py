@@ -25,6 +25,7 @@ class _SearchEntry():
 
 
 class ArtistEntry(_SearchEntry):
+    __slots__ = ["name", "url", "session"]
 
     def __repr__(self):
         return "ArtistEntryObject: {}".format(self.name)
@@ -38,13 +39,14 @@ class ArtistEntry(_SearchEntry):
     def getAllSongs(self):
         songs = []
         page = self.session.get(urls.get_all_songs.format(self._parseArtistURL()))
-        list = page.find_all("div", "ranking-lista")[0].find_all("div", "box-przeboje")
-        for song_ in list:
+        list_ = page.find_all("div", "ranking-lista")[0].find_all("div", "box-przeboje")
+        for song_ in list_:
             songs.append(draft.Song(song_.find_all("a", "title")[0].get("title"), song_.find_all("a", "title")[0].get("href"), self.session))
         return songs
 
 
 class SongEntry(_SearchEntry):
+    __slots__ = ["name", "url", "session"]
 
     def __repr__(self):
         return "SongEntryObject: {}".format(self.name)

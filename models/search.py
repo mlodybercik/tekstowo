@@ -1,8 +1,8 @@
+from overrides import overrides
 from . import utils
 from . import searchEntry
 from . import urls
 from . import exceptions
-from overrides import overrides
 
 
 class _Search():
@@ -13,7 +13,7 @@ class _Search():
      - nameOfSearch (str)
      - entries (list) containing SongEntry or ArtistEntry"""
 
-    url = "To overwrite"
+    url = ""
 
     def __init__(self, name, session=None):
         if not isinstance(session, utils.TekstowoSession):
@@ -40,11 +40,11 @@ class _Search():
 
     def createObject(self, name, url):
         """To overwrite"""
-        pass
 
 
 class ArtistSearch(_Search):
     """Not much here for documentation, go see _Search"""
+    __slots__ = ["nameOfSearch", "entries", "session", "url"]
 
     def __init__(self, name, *args, **kwargs):
         self.url = urls.artist_search.format(utils.urlEncode(name))
@@ -60,6 +60,7 @@ class ArtistSearch(_Search):
 
 class SongSearch(_Search):
     """Not much here for documentation, go see _Search"""
+    __slots__ = ["nameOfSearch", "entries", "session", "url"]
 
     def __init__(self, name, *args, **kwargs):
         self.url = urls.song_search.format(utils.urlEncode(name))
