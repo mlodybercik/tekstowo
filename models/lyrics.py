@@ -57,24 +57,21 @@ class Lyrics:
     @exceptions.catchAndReturn(bool)
     def __getArtist__(self, page):
         """Returns artist name"""
-        return page.find_all("div", "left-corner")[0].find_all("a", "green")[2].get("title")
+        return page.find_all("div", "row topbar")[0].find_all("a", "green")[2].get("title")
 
 
     def __getSongName__(self, page):
         """Returns song name"""
-        songname = page.find_all("div", "left-corner")[0].find_all("a", "green")[3].get("title")
+        songname = page.find_all("div", "row topbar")[0].find_all("a", "green")[3].get("title")
         return songname
 
     def __getUrl__(self, page):
         """Returns url of a page"""
-        url = page.find_all("meta")
-        for meta in url:
-            if meta.get("property") == "og:url":
-                return meta.get("content")
+        return page.find_all("fieldset", "mt-0 mb-2 mt-2 mt-lg-0")[0].input.get("value")
 
     def __hasText__(self, page):
         """Returns True if song has text"""
-        if page.find_all("div", "tekst")[0].find_all("div", "song-text"):
+        if page.find_all("div", "song-text"):
             return True
         else:
             return False
@@ -82,20 +79,17 @@ class Lyrics:
     def __getText__(self, page):
         """Returns string with song lyrics"""
         text = page.find_all("div", "song-text")[0].get_text()
-        return text[65:-130].lstrip().rstrip()
+        return text[50:-40].strip()
 
     def __hasTranslation__(self, page):
         """Returns True if there is is translation for a given song"""
-        if page.find_all("div", "tlumaczenie")[0]\
+        return page.find_all("div", "tlumaczenie")[0]\
             .find_all("a", "pokaz-tlumaczenie")[0]\
-            .get("title") == "Pokaż tłumaczenie":
-            return True
-        else:
-            return False
+            .get("title") == "Pokaż tłumaczenie"
 
     def __getTranslation__(self, page):
         """Returns text translation for given page"""
-        return page.find(id="translation").get_text()[:-130].lstrip().rstrip()
+        return page.find(id="translation").get_text()[:-70].strip()
 
     @exceptions.catchAndReturn(bool)
     def __getArtistUrl__(self, page):

@@ -19,7 +19,7 @@ class TestLyrics(unittest.TestCase):
         self.assertEqual(self.lyrics.songName, "Never gonna give you up", "song")
 
     def test_Url(self):
-        self.assertEqual(self.lyrics.url, "http://www.tekstowo.pl/piosenka,rick_astley,never_gonna_give_you_up.html", "url invalid")
+        self.assertEqual(self.lyrics.url, "https://www.tekstowo.pl/piosenka,rick_astley,never_gonna_give_you_up.html", "url invalid")
 
     def test_HasText(self):
         self.assertTrue(self.lyrics.hasText, "has text?")
@@ -42,7 +42,7 @@ class TestArtist(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.artist = tekstowo.getArtist("http://www.tekstowo.pl/wykonawca,rick_astley.html")
+        self.artist = tekstowo.getArtist("https://www.tekstowo.pl/wykonawca,rick_astley.html")
 
     def test_Name(self):
         self.assertEqual(self.artist.name, "Rick Astley", "name doesen't match")
@@ -54,7 +54,7 @@ class TestArtist(unittest.TestCase):
         self.assertGreaterEqual(self.artist.amountOfFans, 9, "fans doesn't match")
 
     def test_SongList(self):
-        self.assertEqual(len(self.artist.songList), 107, "amount of songs doesnt match")
+        self.assertEqual(len(self.artist.songList), 108, "amount of songs doesnt match")
         self.assertTrue(type(self.artist.songList[0]), draft.Song)
 
     def test_Object(self):

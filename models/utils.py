@@ -107,4 +107,4 @@ class TekstowoSession():
                 raise exceptions.TekstowoBadSite("Status code != 200")
         except Exception:
             raise "No network connection, bad proxy, or bad URL"
-        return str(bytes(requestObj.text, "ISO-8859-1"), "utf-8").strip("\n")
+        return requestObj.text.strip()

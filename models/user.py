@@ -81,32 +81,38 @@ class User:
         return (registerDate, lastLogin, county, city, about)
 
     def __getStats__(self, page):
-        offset = 0
-        page = page.findAll("div", "user-info")[0]
-        desc = [i.strip() for i in page.strings]
-        login = desc[4][7:]
-        name = desc[6]
-        if name[:6] == "Wiek: ":
-            offset -= 1
-            name = ""
-        age = int(desc[7 + offset][6:])
-        gender = SEX[desc[8+offset][6:]]
-        if desc[10 + offset] == "brak":
-            gg = -1 # pylint: disable=C0103
-        else:
-            gg = int(desc[10 + offset]) # pylint: disable=C0103
-        if "napisz >" not in desc:
-            offset += -3
-        points = int(desc[17 + offset])
-        # ah yes, site doesnt't seem to be working as it should sometimes
-        # rankno is broken, on some profiles it wont even show.
+        # FIXME: this is horribly wrong...
+        # fix for now, wrap everything in a big try statement :)
         try:
-            rankno = int(desc[-22])
-        except ValueError:
-            rankno = -1
-        invited = int(desc[-19])
-        added = (int(desc[-16]), int(desc[-14]), int(desc[-12]), int(desc[-10]))
-        edited = (int(desc[-7]), int(desc[-5]), int(desc[-3]))
+            offset = 0
+            page = page.findAll("div", "user-info")[0]
+            desc = [i.strip() for i in page.strings]
+            login = desc[4][7:]
+            name = desc[6]
+            if name[:6] == "Wiek: ":
+                offset -= 1
+                name = ""
+            age = int(desc[7 + offset][6:])
+            gender = SEX[desc[8+offset][6:]]
+            if desc[10 + offset] == "brak":
+                gg = -1 # pylint: disable=C0103
+            else:
+                gg = int(desc[10 + offset]) # pylint: disable=C0103
+            if "napisz >" not in desc:
+                offset += -3
+            points = int(desc[17 + offset])
+            # ah yes, site doesnt't seem to be working as it should sometimes
+            # rankno is broken, on some profiles it wont even show.
+            try:
+                rankno = int(desc[-22])
+            except ValueError:
+                rankno = -1
+            invited = int(desc[-19])
+            added = (int(desc[-16]), int(desc[-14]), int(desc[-12]), int(desc[-10]))
+            edited = (int(desc[-7]), int(desc[-5]), int(desc[-3]))
+        except Exception as e:
+            print(e)
+            return ("", "", 0, False, "", 0, 0, 0, (0, 0, 0, 0), (0, 0, 0))
         return (login, name, age, gender, gg, points, rankno, invited, added, edited)
 
     def __getRecent__(self, page):
@@ -124,6 +130,7 @@ class User:
             i.extract()
         return recent
 
+    @exceptions.catchAndReturn(list)
     def __getFanOf__(self, page):
         fanof = []
         page = page.findAll("div", "box-big")[0]
@@ -132,6 +139,7 @@ class User:
         page.extract()
         return fanof
 
+    @exceptions.catchAndReturn(list)
     def __getInvited__(self, page):
         # is this some unfunny *joke*?
         # users invited are displayed as wykonawca class
@@ -146,6 +154,7 @@ class User:
         page.extract()
         return invited
 
+    @exceptions.catchAndReturn(list)
     def __getFavsongs__(self, page):
         fav = []
         for i in page.find_all("div", "box-przeboje"):

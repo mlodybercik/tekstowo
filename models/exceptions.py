@@ -1,23 +1,23 @@
 """File for holding custom exceptions"""
 
 
-class TekstowoUnableToLogin(Exception):
+class TekstowoUnableToLogin(BaseException):
     """Self-explanatory"""
 
 
-class TekstowoBadSite(Exception):
+class TekstowoBadSite(BaseException):
     """Self-explanatory"""
 
 
-class TekstowoBadJar(Exception):
+class TekstowoBadJar(BaseException):
     """Self-explanatory"""
 
 
-class TekstowoBadObject(Exception):
+class TekstowoBadObject(BaseException):
     """Self-explanatory"""
 
 
-class TekstowoNotLoggedIn(Exception):
+class TekstowoNotLoggedIn(BaseException):
     """Self-explanatory"""
 
 

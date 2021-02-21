@@ -50,20 +50,20 @@ class Artist:
 
     def __getName__(self, page):
         """Returns artist name"""
-        return page.find_all("div", "belka short")[0].strong.get_text()
+        return page.find_all("div", "belka")[0].strong.get_text()
 
     @exceptions.catchAndReturn(list)
     def __getAlbums__(self, page):
         """Returns [string] with albums"""
         albums = []
-        for album in page.find(id="artist-disc").find_all("p"):
+        for album in page.find(id="dyskografia").find_all("p"):
             albums.append(album.b.get_text())
         return albums
 
     @exceptions.catchAndReturn(str)
     def __getAboutArtist__(self, page):
         """Returns the about artist section"""
-        return page.find(id="artist-desc").p.get_text()
+        return page.find(id="opis").p.get_text()
 
     def __getAmountOfFans__(self, page):
         """Returns amount of "fans" from page"""
@@ -72,7 +72,7 @@ class Artist:
     def __getSongList__(self, page):
         """Returns list of songs"""
         songs = []
-        name = page.find_all("div", "left-corner")[0].find_all("a", "green")[3].get("href")[11:-5:]
+        name = page.find_all("div", "belka-right")[0].find_all("a", "link-wykonawca")[0].get("href")[18:-5:]
         page = self._session.get(urls.ARTIST_SONGS.format(name))
         _list = page.find_all("div", "ranking-lista")[0].find_all("div", "box-przeboje")
         for _song in _list:
