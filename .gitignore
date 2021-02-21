@@ -106,4 +106,4 @@ venv.bak/
 # test files
 test.py
 
-README.md
+.vscode/
