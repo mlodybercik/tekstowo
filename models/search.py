@@ -1,8 +1,9 @@
+"""File containing search logic"""
+from overrides import overrides
 from . import utils
-from . import searchEntry
+from . import search_entry
 from . import urls
 from . import exceptions
-from overrides import overrides
 
 
 class _Search():
@@ -13,7 +14,7 @@ class _Search():
      - nameOfSearch (str)
      - entries (list) containing SongEntry or ArtistEntry"""
 
-    url = "To overwrite"
+    url = ""
 
     def __init__(self, name, session=None):
         if not isinstance(session, utils.TekstowoSession):
@@ -34,20 +35,21 @@ class _Search():
         return "{}".format(str(self.__class__))
 
     def search(self):
+        """Main search entry point"""
         page = self.session.get(self.url.format(self.nameOfSearch))
         for i in page.find_all("div", "content")[0].find_all("div", "box-przeboje"):
             self.entries.append(self.createObject(i.a.get("title"), i.a.get("href")))
 
     def createObject(self, name, url):
         """To overwrite"""
-        pass
 
 
 class ArtistSearch(_Search):
     """Not much here for documentation, go see _Search"""
+    __slots__ = ["nameOfSearch", "entries", "session", "url"]
 
     def __init__(self, name, *args, **kwargs):
-        self.url = urls.artist_search.format(utils.urlEncode(name))
+        self.url = urls.ARTIST_SEARCH.format(utils.urlEncode(name))
         super().__init__(name, *args, **kwargs)
 
     def __str__(self):
@@ -55,14 +57,15 @@ class ArtistSearch(_Search):
 
     @overrides
     def createObject(self, name, url):
-        return searchEntry.ArtistEntry(name, url, self.session)
+        return search_entry.ArtistEntry(name, url, self.session)
 
 
 class SongSearch(_Search):
     """Not much here for documentation, go see _Search"""
+    __slots__ = ["nameOfSearch", "entries", "session", "url"]
 
     def __init__(self, name, *args, **kwargs):
-        self.url = urls.song_search.format(utils.urlEncode(name))
+        self.url = urls.SONG_SEARCH.format(utils.urlEncode(name))
         super().__init__(name, *args, **kwargs)
 
     def __str__(self):
@@ -70,4 +73,4 @@ class SongSearch(_Search):
 
     @overrides
     def createObject(self, name, url):
-        return searchEntry.SongEntry(name, url, self.session)
+        return search_entry.SongEntry(name, url, self.session)

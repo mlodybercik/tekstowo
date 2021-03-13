@@ -1,8 +1,9 @@
+"""File containing Artist declaration."""
+from bs4 import BeautifulSoup
 from . import draft
 from . import utils
 from . import urls
 from . import exceptions
-from bs4 import BeautifulSoup
 
 
 class Artist:
@@ -17,20 +18,20 @@ class Artist:
      Local methods:
      - None
     """
-    _session = None
-    _valid_keys = [["a", "albums"],
-                   ["s", "songlist", "songs"]]
+    __slots__ = ["_session", "_valid_keys", "name",
+                 "aboutArtist", "albums", "amountOfFans", "songList"]
 
     def __init__(self, page, session=None):
         if not isinstance(page, BeautifulSoup):
             raise exceptions.TekstowoBadObject("Passed page is not a BeautifulSoup class")
         if not isinstance(session, utils.TekstowoSession):
             raise exceptions.TekstowoBadJar("Passed object is not a TekstowoSession")
-        self.session = session
+        self._session = session
         self.__parse__(page)
 
     @classmethod
-    def from_url(cls, url, session):
+    def fromUrl(cls, url, session):
+        """Create object from url"""
         return cls(session.get(url), session)
 
     def __str__(self):
@@ -40,52 +41,48 @@ class Artist:
         return "{}ArtistObject".format(self.name)
 
     def __getitem__(self, key):
-        if key.casefold() in self._valid_keys[0]:
+        if key.casefold() in ["a", "albums"]:
             return self.albums
-        elif key.casefold() in self._valid_keys[1]:
+        elif key.casefold() in ["s", "songlist", "songs"]:
             return self.songList
         else:
             raise Exception("Given key is not valid {}".format(key))
 
-    def __getName(self, page):
+    def __getName__(self, page):
         """Returns artist name"""
-        return page.find_all("div", "belka short")[0].strong.get_text()
+        return page.find_all("div", "belka")[0].strong.get_text()
 
-    def __getAlbums(self, page):
+    @exceptions.catchAndReturn(list)
+    def __getAlbums__(self, page):
         """Returns [string] with albums"""
         albums = []
-        try:
-            for album in page.find(id="artist-disc").find_all("p"):
-                albums.append(album.b.get_text())
-            return albums
-        except Exception:
-            return []
+        for album in page.find(id="dyskografia").find_all("p"):
+            albums.append(album.b.get_text())
+        return albums
 
-    def __getAboutArtist(self, page):
+    @exceptions.catchAndReturn(str)
+    def __getAboutArtist__(self, page):
         """Returns the about artist section"""
-        try:
-            return page.find(id="artist-desc").p.get_text()
-        except Exception:
-            return ""
+        return page.find(id="opis").p.get_text()
 
-    def __getAmountOfFans(self, page):
+    def __getAmountOfFans__(self, page):
         """Returns amount of "fans" from page"""
         return int(page.find_all("div", "odslon")[0].get_text().strip("Fanów: "))
 
-    def __getSongList(self, page):
+    def __getSongList__(self, page):
         """Returns list of songs"""
         songs = []
-        name = page.find_all("div", "left-corner")[0].find_all("a", "green")[3].get("href")[11:-5:]
-        page = self.session.get(urls.artist_songs.format(name))
-        list = page.find_all("div", "ranking-lista")[0].find_all("div", "box-przeboje")
-        for song_ in list:
-            a = song_.find_all("a", "title")[0]
-            songs.append(draft.Song(a.get("title"), a.get("href"), self.session))
+        name = page.find_all("div", "belka-right")[0].find_all("a", "link-wykonawca")[0].get("href")[18:-5:]
+        page = self._session.get(urls.ARTIST_SONGS.format(name))
+        _list = page.find_all("div", "ranking-lista")[0].find_all("div", "box-przeboje")
+        for _song in _list:
+            a = _song.find_all("a", "title")[0] # pylint: disable=C0103
+            songs.append(draft.Song(a.get("title"), a.get("href"), self._session))
         return songs
 
     def __parse__(self, page):
-        self.name = self.__getName(page)
-        self.aboutArtist = self.__getAboutArtist(page)
-        self.albums = self.__getAlbums(page)
-        self.amountOfFans = self.__getAmountOfFans(page)
-        self.songList = self.__getSongList(page)
+        self.name = self.__getName__(page)
+        self.aboutArtist = self.__getAboutArtist__(page)
+        self.albums = self.__getAlbums__(page)
+        self.amountOfFans = self.__getAmountOfFans__(page)
+        self.songList = self.__getSongList__(page)

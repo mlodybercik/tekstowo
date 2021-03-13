@@ -1,5 +1,6 @@
+"""File holding Comment class"""
 from datetime import datetime
-from .utils import month
+from .utils import MONTH
 
 
 class Comment:
@@ -21,12 +22,16 @@ class Comment:
      - month - Containing all twelve months lmao
     """
 
-    def __init__(self, username, content, id, timedate, upVotes, url, replyID=None, childComments=None):
+    __slots__ = ["username", "content", "id", "timedate",
+                 "upVotes", "url", "childComments", "replyID"]
+
+    def __init__(self, username, content, _id, timedate, upVotes,
+                 url, replyID=None, childComments=None):
         self.username = username
         self.content = content
         self.upVotes = int(upVotes)
         self.url = url
-        self.timedate = self.__parseTimedate(timedate)
+        self.timedate = self.__parseTimedate__(timedate)
         self.childComments = childComments
 
         if childComments is None:
@@ -39,10 +44,15 @@ class Comment:
         else:
             self.replyID = int(replyID)
 
-        if id is None:
-            self.id = 0
+        if _id is None:
+            self.id = 0 # pylint: disable=C0103
         else:
-            self.id = int(id)
+            self.id = int(_id)
+
+    @classmethod
+    def empty(cls):
+        """Creates empty class. Used when something went wrong."""
+        return cls("Exception", "Exception", 0, 0, 0, "Exception")
 
     def __str__(self):
         return "{}: {}".format(self.username, self.content)
@@ -56,9 +66,9 @@ class Comment:
     def __getitem__(self, n):
         return self.childComments
 
-    def __parseTimedate(self, tab):
+    def __parseTimedate__(self, tab):
         if tab == 0:
             return None
         else:
             hour, minute = tab[3].split(":")
-            return datetime(int(tab[2]), month[tab[1]], int(tab[0]), int(hour), int(minute))
+            return datetime(int(tab[2]), MONTH[tab[1]], int(tab[0]), int(hour), int(minute))

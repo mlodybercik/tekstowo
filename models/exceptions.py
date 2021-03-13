@@ -1,23 +1,34 @@
-class TekstowoUnableToLogin(Exception):
-    def init(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+"""File for holding custom exceptions"""
 
 
-class TekstowoBadSite(Exception):
-    def init(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class TekstowoUnableToLogin(BaseException):
+    """Self-explanatory"""
 
 
-class TekstowoBadJar(Exception):
-    def init(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class TekstowoBadSite(BaseException):
+    """Self-explanatory"""
 
 
-class TekstowoBadObject(Exception):
-    def init(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class TekstowoBadJar(BaseException):
+    """Self-explanatory"""
 
 
-class TekstowoNotLoggedIn(Exception):
-    def init(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class TekstowoBadObject(BaseException):
+    """Self-explanatory"""
+
+
+class TekstowoNotLoggedIn(BaseException):
+    """Self-explanatory"""
+
+
+def catchAndReturn(ret):
+    """Add catch around function, if it fails return ret()"""
+    def decorate(func):
+        def call(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception:  # FIXME: too broad catch
+                print(f"Got exception in: {func.__name__}")
+                return ret()
+        return call
+    return decorate
